@@ -1,0 +1,40 @@
+#           ---     LIST VARIABLES    ---
+
+# SQLLOG LIST
+# name: sqllog
+#
+# Type: List of Lists
+# Indexes: Enum Specified with COL enum class
+#   [COL.Line][COL.String][COL.Type][COL.QueryNo][COL.User][COL.Save][COL.Query]
+# Formats:
+#   [Integer][String][String][String][String][Integer][String]
+# Example:
+#   [
+#   [1]["Full SQL Connect Statment with Query Number Etc"]["Connect"]["1"]["deoem"][0]["SQL Connect Statement Only"]
+#   [2]["Full SQL Query Statment with Query Number Etc"]["Query"]["1"]["deoem"][1]["SQL Query Statement Only"]
+#   [3]["Full SQL Quit Statment with Query Number Etc"]["Quit"]["1"]["deoem"][0]["SQL Quit Statement Only"]
+#   ]
+
+# CONFIGURATION LIST
+# name: configuration 
+#
+# Type: Dictionary of Lists
+# Indexes: Enum Specified with CONFIG enum class
+#   'DatabaseUser' : [CONFIG.Database, [CONFIG.IgnoreTables]]
+# Formats:
+#   [String][String][List of Strings]
+# Example:
+#   [
+#   'user1' : [database1, [list, of, tables, to, ignore]]
+#   'user2' : [database2, [list, of, tables, to, ignore]]
+#   'user3' : [database3, [list, of, tables, to, ignore]]
+#   ]
+
+# RECORDABLE QUERY LIST
+# name: recordable
+#
+# Type: List
+# Formats: Strings
+#
+# Example:
+# ['INSERT', 'UPDATE', 'DROP']

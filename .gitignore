@@ -1,0 +1,5 @@
+# Ignore All Configs
+config/*
+
+# Dont Ignore Example Config
+!config/example
