@@ -1,4 +1,4 @@
-#           ---     LIST VARIABLES    ---
+#           ---     LIST VARIABLES NOTES   ---
 
 # SQLLOG LIST
 # name: sqllog
@@ -20,14 +20,14 @@
 #
 # Type: Dictionary of Lists
 # Indexes: Enum Specified with CONFIG enum class
-#   'DatabaseUser' : [CONFIG.Database, [CONFIG.IgnoreTables]]
+#   'DatabaseUser' : [CONFIG.Database, [CONFIG.IgnoreTables], CONFIG.Filter]
 # Formats:
-#   [String][String][List of Strings]
+#   [String][[String][List of Strings][Integer]]
 # Example:
 #   [
-#   'user1' : [database1, [list, of, tables, to, ignore]]
-#   'user2' : [database2, [list, of, tables, to, ignore]]
-#   'user3' : [database3, [list, of, tables, to, ignore]]
+#   'user1' : [database1, [list, of, tables, to, ignore], 1]
+#   'user2' : [database2, [list, of, tables, to, ignore], 0]
+#   'user3' : [database3, [list, of, tables, to, ignore], 0]
 #   ]
 
 # RECORDABLE QUERY LIST

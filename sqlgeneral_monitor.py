@@ -4,13 +4,16 @@ import os.path
 import os
 import re
 import shlex
+import ConfigParser
 from enum import Enum
 from enum import IntEnum
 from optparse import OptionParser
 from datetime import datetime
 
-import ConfigParser
+# Import other script file
+import filter
 
+# Begin Timing Script
 startTime = datetime.now()
 
 #              ##############################
@@ -80,7 +83,7 @@ class COL(IntEnum):
 class CONFIG(IntEnum):
     Database = 0
     IgnoreTables = 1
-#    IgnoreRegex = 2
+    Filter = 2
 
 # Types of lines found in sql log
 # Used to represent values in COL.Type
@@ -256,11 +259,6 @@ def main():
         try:
             ignore_tables = re.sub('[\s+]', '', config.get(db, 'ignore_tables')).split(',')
             configuration[current_user].insert(CONFIG.IgnoreTables.value, ignore_tables)
-#            ignore_regex = []       
-#            for table in configuration[current_user][CONFIG.IgnoreTables.value]:
-#                ignore_regex.append(re.compile("^" + re.escape(table)))
-#            configuration[current_user].insert(CONFIG.IgnoreRegex.value, ignore_regex)
-#            print(configuration[current_user])
         except:
             print(configuration)
             parser.error("Unable to read specified ignore_tables for %(dbs)s" %{'dbs' : db})
@@ -270,9 +268,16 @@ def main():
             for x in range(len(configuration[current_user][CONFIG.IgnoreTables.value])):
                 configuration[current_user][CONFIG.IgnoreTables.value][x] = '`' + configuration[current_user][CONFIG.IgnoreTables.value][x] + '`'
 
+        # Try to get the filter value from the user
+        try:
+            configuration[current_user].insert(CONFIG.Filter.value, config.get(db, 'filter_output'))
+        except:
+            configuration[current_user].insert(CONFIG.Filter.value, '0')
+
     configuration["Unknown User"] = []
     configuration["Unknown User"].insert(CONFIG.Database.value, "None")
-    configuration["Unknown User"].insert(CONFIG.IgnoreTables.value, "*")
+    configuration["Unknown User"].insert(CONFIG.IgnoreTables.value, "None")
+    configuration["Unknown User"].insert(CONFIG.Filter.value, "0")
 
 #               ################################
 #               ---   SETUP OTHER VARIBLES   ---
@@ -295,14 +300,14 @@ def main():
     # If the file specified in the options is both a file and exists
     if os.path.exists(options.location) and os.path.isfile(options.location):
 
-        # Only move the file and rename if we are going to actually go ahead with the clearing of the log file
-        # However if we are only debugging (debug line is set) then do not rename or move the file
-        # We set the file variable so we can reference the file later
-        if not options.debug_line:
-            os.rename(options.location, '/root/scripts/working/temp')
-            file = '/root/scripts/working/temp'
-        else:
-            file = options.location
+#        # Only move the file and rename if we are going to actually go ahead with the clearing of the log file
+#        # However if we are only debugging (debug line is set) then do not rename or move the file
+#        # We set the file variable so we can reference the file later
+#        if not options.debug_line:
+#            os.rename(options.location, '/root/scripts/working/temp')
+#            file = '/root/scripts/working/temp'
+#        else:
+        file = options.location
 
         # Write the information from the sql log to the array in a 2D format
         with open(file) as sql_log:
@@ -335,12 +340,10 @@ def main():
                 continue
 
             ### SPLIT THE LINE (MAINTAIN QUOTES) ###                
-####            split = sqllog[x][COL.String.value].split()
-####            split2 = shlex.shlex(sqllog[x][COL.String.value], posix=False)
             split = re.findall(r'[^"\s]\S*|".+?"', sqllog[x][COL.String.value])
-#            print(' '.join(split))
 
             ### GET THE TYPE AND QUERY NO ###
+            # Time Included Format
             # Use regular expressions to check if this is a entry given with a time or not
             if is_number.match(split[0]) and is_time.match(split[1]) and is_number.match(split[2]) and is_type.match(split[3]):
 
@@ -350,8 +353,8 @@ def main():
                 sqllog[x].insert(COL.QueryNo.value, split[2])
                 # Insert the index of this query to the array
                 sqllog[x].insert(COL.StartIndex.value, x)
-#                print("TIME FORMAT")
 
+            # Regular Format
             # Use regular expressions to check if this is an entry given without a time
             elif is_number.match(split[0]) and is_type.match(split[1]):
 
@@ -361,8 +364,8 @@ def main():
                 sqllog[x].insert(COL.QueryNo.value, split[0])
                 # Insert the index of this query to the array
                 sqllog[x].insert(COL.StartIndex.value, x)
-#                print("REGULAR FORMAT")
 
+            # Continued Query
             # Otherwise this is an entry given that is in neither format and must be a continued query
             else:
 
@@ -372,7 +375,6 @@ def main():
                 sqllog[x].insert(COL.QueryNo.value, sqllog[indexMinusOne(x)][COL.QueryNo.value])
                 # Insert the index of the beginning of this query to the array
                 sqllog[x].insert(COL.StartIndex.value, sqllog[indexMinusOne(x)][COL.StartIndex.value])
-#                print("CONTINUED QUERY")
 
             ### STORE USER ON CONNECTS ###
             # If it is a connect statment
@@ -423,11 +425,13 @@ def main():
             if x == 0 or x == 1 or x == 2:
                 continue
 
+            # No need to check users that were not set to record
+            if sqllog[x][COL.User.value] == "Unknown User":
+                continue
+
             ### DECIDE WHETHER TO SAVE OR NOT ###
             # We only save queries
             if sqllog[x][COL.Type.value] == TYPE.Query.value:
-
-#                print("IS QUERY")
 
                 # Check the ignore tables if nothing is set then we dont check it
                 if configuration[sqllog[x][COL.User.value]][CONFIG.IgnoreTables.value][0] == "":
@@ -440,8 +444,6 @@ def main():
 
                 # Otherwise if the line contains a sql command we have set it to record and not a table set to ignore from the configuration
                 elif any(cmd in sqllog[x][COL.String.value] for cmd in recordable): 
-
-#                    print("ENTERED CMD IN RECORDABLE")
 
                     split = re.findall(r'[^"\s]\S*|".+?"', sqllog[x][COL.String.value])
                     next_cmd = re.compile("^[A-Z]{2,9}")
@@ -457,20 +459,14 @@ def main():
                         try:
                             index = split.index(cmd)
 
-#                            print("FOUND CMD: " + cmd)
-
                         # If we cant find it then continue with the next command that is recordable
                         except:
                             continue
-                            
-#                        print(split)
 
                         # WHAT STATEMENTS FOLLOW IT
                         # Try to find the next command after the recorded one
                         # For each element in the split
                         for z in range(len(split)):
-                            
-#                            print("Searching " + str(z) + " for following statements")
 
                             # Check to see if it is a command
                             if next_cmd.match(split[z]) and not_null.match(split[z]):
@@ -481,20 +477,9 @@ def main():
                                     # If it is a command then add its index to the list of command indexes following the recordable commands
                                     next_index.append(z)
 
-#                        print("FINISHED SEARCHING FOR FOLLOWING STATEMENTS")
-#                        if x == 480889:
-#                            print("X is: " + str(x))
-#                            print("Line number is: " + str(sqllog[x][COL.Line.value]))
-#                            print(split)
-#                            print("FOUND INDEXES")
-#                            print(next_index)
-
-
                         # NO STATEMENTS FOLLOWING
                         # If nothing is in the commands after recordable command
                         if not next_index:
-
-#                            print("ENTERED NO STATEMENTS FOLLOWING")
 
                             # Search everything after the cmd (index)
                             # For each table in the ignore tables for this queries user
@@ -503,10 +488,8 @@ def main():
                                 # For each index between this and the last one
                                 for i in range(index, len(split)):
 
-                                    #ignore = re.compile("^" + re.escape(ignore_table))
                                     # If we find a table we need to ignore then set save to 0
                                     if ignore_table == split[i]:
-                                    #if ignore_table.match(split[i]):                                    
                                         sqllog[x].insert(COL.Save.value, '0')
                                         break
 
@@ -517,8 +500,6 @@ def main():
                         # FROM STATEMENT FOLLOWING IT
                         # If the next index is a FROM
                         elif split[next_index[0]] == "FROM":
-
-####################WHAT IF THERE IS ONLY ONE COMMAND FOLLOWING IE FROM AND NOTHING ELSE
 
                             # If there is no commands following beyond FROM then set the search to check for tables to ignore until the end of the line
                             if len(next_index) <= 1:
@@ -531,10 +512,8 @@ def main():
                                 # For each index between this and the next command
                                 for i in range(next_index[0], next_index[1]):
 
-                                    #ignore = re.compile("^" + re.escape(ignore_table))
                                     # If we find a table we need to ignore then set save to 0
                                     if ignore_table == split[i]:
-                                    #if ignore_table.match(split[i]):
                                         sqllog[x].insert(COL.Save.value, '0')
                                         break
 
@@ -551,18 +530,11 @@ def main():
                             
                             for ignore_table in configuration[sqllog[x][COL.User.value]][CONFIG.IgnoreTables.value]:
 
-#                                print("CHECKING RANGE BETWEEN RECORDED VALUE AND NEXT COMMAND")
-
                                 # For each index between this and the next command
                                 for i in range(index, next_index[0]):
 
-#                                    print("Checking index: " + str(i))
-#                                    print(ignore_table)
-
-                                    #ignore = re.compile("^" + re.escape(ignore_table))
                                     # If we find a table we need to ignore then set save to 0
                                     if ignore_table == split[i]:
-                                    #if ignore_table.match(split[i]):
                                         sqllog[x].insert(COL.Save.value, '0')
                                         break
 
@@ -570,12 +542,8 @@ def main():
                                 if len(sqllog[x]) == 7 and sqllog[x][COL.Save.value] == '0':
                                     break
 
-#                    print("JUST BEFORE CHECKING IF SAVE IS SET TO 0")
-#                    print(sqllog[x])
-
                     # If we have made our way through not found any to ignore then set save to 1
                     if len(sqllog[x]) != 7:
-#                        print("SAVE IS NOT SET, SETTING TO 1")
                         sqllog[x].insert(COL.Save.value, '1')
 
                     # We will only hit that if a query makes it all the way through without having any value set which should not be possible so error
@@ -591,15 +559,9 @@ def main():
             else:
                 sqllog[x].insert(COL.Save.value, '0')
 
-#            print(sqllog[x][COL.Line.value])
-
             # If the log has been set to save
             if sqllog[x][COL.Save.value] == '1':
                 
-#                if x == 9:
-#                    print("Save was 1")
-#                    print(sqllog[x])
-    
                 # Split the query and store only the valid sql query from this line
                 sqllog[x].insert(COL.Query.value, getQuery(sqllog[x][COL.String.value], "Query"))
 
@@ -617,14 +579,22 @@ def main():
                             export.write(write)
                             export.close()
 
-#               ##########################
-#               ---   DELETE TEMP FILE ---
-#               ##########################
+#               #####################
+#               ---  FILTER FILES ---
+#               #####################
 
-#################################################################################################################################################TEMPORARILY DISABLED DELETION OF TEMP FILE
-#        # Only delete the file if the debug_line option was not set
-#        if not options.debug_line:
-#            os.remove(file)
+        # Check each users configuration and filter the output files if they are configured to do so
+        for user in configuration:
+            if configuration[user][CONFIG.Filter.value] == "1":
+                filter.filter(save_files[user])
+
+#               #####################
+#               ---   DELETE FILE ---
+#               #####################
+
+        # Only delete the file if the debug_line option was not set
+        if not options.debug_line:
+            os.remove(file)
 
 #               ####################
 #               ---   DEBUGGING  ---
