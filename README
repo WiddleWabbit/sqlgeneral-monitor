@@ -11,6 +11,16 @@ These recorded changes can then be run on another database allowing the develope
 orders easily and automatically from a development to a production website and vice verca.
 
 
+        Current Build Designed for use on:
+
+                        -   MySQL 5.6
+                        -   Python 2.6.6
+
+                 Requires:
+
+                        -   enum34 1.6.6 (backported)
+                        -   MySQLdb 1.2.5
+
 
                                         ---           TODO         ---
 

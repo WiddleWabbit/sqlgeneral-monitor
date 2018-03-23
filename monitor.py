@@ -322,14 +322,6 @@ def main():
                 else:
                     os.makedirs(configuration["Global"][conf.GLOBAL.Export.value])
 
-#        # Create a dictionary to store the save file locations
-#        #save_files = {}
-#        # For each user in the configuration
-#        #for user in configuration:
-
-#        #    # Create the save file location
-#        #    save_files[user] = configuration["Global"][conf.GLOBAL.Export.value] + configuration[user][conf.CONFIG.Database.value] #export_dir + configuration[user][conf.CONFIG.Database.value]
-
             # For each line in the log
             for x in range(len(sqllog)):
 

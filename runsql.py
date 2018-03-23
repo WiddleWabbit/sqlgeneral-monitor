@@ -7,10 +7,6 @@ import MySQLdb
 from enum import Enum
 from enum import IntEnum
 
-import conf
-
-#configuration = conf.getConfig("oem")
-
 #              ##############################
 #              ---   SCRIPT REQUIREMENTS  ---
 #              ##############################
@@ -100,4 +96,3 @@ def runSQL(user, configuration):
                 os.remove(configuration[user][conf.CONFIG.Export.value])
                 os.remove(tmp_file)
 
-#runSQL('/root/scripts/cron/sqlexports/oem_magento', configuration)
