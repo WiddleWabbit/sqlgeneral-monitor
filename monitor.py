@@ -54,7 +54,7 @@ args = parser.parse_args()
 #               ##############################
 
 # Stop script if no option is passed for the file location
-if not args.location:
+if not args.run_only and not args.location:
     parser.error("Log file not defined correctly (Use -f)")
 
 #               ################################
@@ -568,29 +568,29 @@ def main():
                     pass
                 print
 
+#               ######################################
+#               ---   IF LOG FILE DOES NOT EXIST   ---
+#               ######################################
+
+        else:
+            print("File does not exist or is a directory")
 
 #               #####################
 #               ---   RUN FILE ---
 #               #####################
 
-        # If the run flag was set then run the database changes as per the configuration
-        if args.run or args.run_only:
-            for user in configuration:
-                runsql.runSQL(user, configuration)
+    # If the run flag was set then run the database changes as per the configuration
+    if args.run or args.run_only:
+
+        for user in configuration:
+            runsql.runSQL(user, configuration)
 
 
+#               ######################
+#               ---   SHOW RUNTIME ---
+#               ######################
 
-        print("Total time of execution: " + str(datetime.now() - startTime))
-
-
-
-
-#               ######################################
-#               ---   IF LOG FILE DOES NOT EXIST   ---
-#               ######################################
-
-    else:
-        print("File does not exist or is a directory")
+    print("Total time of execution: " + str(datetime.now() - startTime))
 
 #               ########################
 #               ---   EXECUTE MAIN   ---

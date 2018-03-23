@@ -25,8 +25,10 @@ orders easily and automatically from a development to a production website and v
                                         ---           TODO         ---
 
         -   Feature
+                -   Automatica flush of MySQL Log
                 -   Lock Functionality
                 -   Silent Running and Verbose
+                -   Per Database Ignore certain SQL Commands otherwise recorded (CREATE TEMPORARY TABLE etc)
 
         -   sqlrun.py
                 -   If there is a start transaction at the end of the command file with some
