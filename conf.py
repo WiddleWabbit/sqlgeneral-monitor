@@ -20,7 +20,10 @@ from optparse import OptionParser
 class CONFIG(IntEnum):
     Database = 0
     IgnoreTables = 1
-    Filter = 2
+    Export = 2
+    Filter = 3
+    Pass = 4
+    Run = 5
 
 class GLOBAL(IntEnum):
     Export = 0
@@ -66,7 +69,6 @@ def getConfig(config_file):
     # FETCH RECORDABLE QUERIES
     # Define an array for the recordable sql queries, processed and unprocessed
     record = []
-#    recordable = []
     count = 0
 
     # Try to fetch the recordable sql queries from the config and input them into the array
@@ -81,7 +83,6 @@ def getConfig(config_file):
             # We strip them individually so that SQL commands with a space do not have them removed
             for sqlcmd in record:
                 sqlcmd = sqlcmd.strip()
-#                #recordable.insert(count, sqlcmd)
                 configuration["Global"][GLOBAL.Record.value].insert(count, sqlcmd)
                 count += 1
     except:
@@ -122,15 +123,36 @@ def getConfig(config_file):
             for x in range(len(configuration[current_user][CONFIG.IgnoreTables.value])):
                 configuration[current_user][CONFIG.IgnoreTables.value][x] = '`' + configuration[current_user][CONFIG.IgnoreTables.value][x] + '`'
 
+        # Set the database export location
+        try:
+            configuration[current_user].insert(CONFIG.Export.value, configuration["Global"][GLOBAL.Export.value] + db)
+        except:
+            parser.error("Unable to set database export location")
+
         # Try to get the filter value from the user
         try:
             configuration[current_user].insert(CONFIG.Filter.value, config.get(db, 'filter_output'))
         except:
             configuration[current_user].insert(CONFIG.Filter.value, '0')
 
+        # Try to fetch the users password
+        try:
+            configuration[current_user].insert(CONFIG.Pass.value, config.get(db, 'password'))
+        except:
+            configuration[current_user].insert(CONFIG.Pass.value, 'None')
+
+        # Try to separate out databases to run queries on, if there are multiple, then store
+        try:
+            runon = re.sub('[\s+]', '', config.get(db, 'runon')).split(',')
+            configuration[current_user].insert(CONFIG.Run.value, runon)
+        except:
+            print(runon)
+            parser.error("Unable to read specified runon configuration")
+
     configuration["Unknown User"] = []
     configuration["Unknown User"].insert(CONFIG.Database.value, "None")
     configuration["Unknown User"].insert(CONFIG.IgnoreTables.value, "None")
     configuration["Unknown User"].insert(CONFIG.Filter.value, "0")
+    configuration["Unknown User"].insert(CONFIG.Pass.value, "None")
 
     return configuration

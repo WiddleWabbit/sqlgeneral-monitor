@@ -1,3 +1,5 @@
+####################################################################################################################
+#
 # The SYSTEM section is REQUIRED.
 # System houses the configuration for databases and values for what queries to track
 #
@@ -25,12 +27,19 @@
 #       databases = site_database, database_2
 #       record = DELETE, DROP, FLUSH, START, COMMIT
 #       export = /root/scripts/working/export/
+#
+####################################################################################################################
+
 
 [SYSTEM]
+
 databases = database1, database2, database3
 record = INSERT, DELETE, UPDATE, CREATE, DROP, FLUSH, HASH, REHASH, ALTER, START, COMMIT, ROLLBACK
 export = /root/exports/
 
+
+####################################################################################################################
+#
 # Each database listed is REQUIRED to have a section for it listed below
 # Each database section should be specifed with its name exactly the same as it was specified
 # in the system section of the configuration file
@@ -38,7 +47,7 @@ export = /root/exports/
 #       Example:
 #       [database1]
 #
-# Each database section should contain the user field to specifiy a user to associate with
+# Each database section should contain the user field to specifiy a database user to associate with
 # the database.
 #
 #       Example:
@@ -55,6 +64,14 @@ export = /root/exports/
 #       Example:
 #       filter_output = 1
 #
+# Each database has the option to have its recorded queries run (if the monitor script has the argument called)
+# The value should be a comma serarated list of databases to run the queries on
+# In order to run the queries the database to run the queries on must be specified as well and the user, password permissions
+# etc correct for that database
+#
+#       Example:
+#       runon = database2
+#
 # The ignore tables field can also be specified to mark the tables that should not be saved for
 # a particular database. This should be specified in a comma separated list without quotes
 # If there are no tables to be ignored just leave it blank
@@ -65,23 +82,30 @@ export = /root/exports/
 #       Example Database Configuration:
 #       [site_database]
 #       user = website_user
+#       password = user_password
 #       ignore_tables = cron_schedule, cron_exec
+#       filter_output = 1
+#       runon = database2
 #
+####################################################################################################################
 
 [database1]
 user = user1
 password = password1
 ignore_tables = cron_schedule
 filter_output = 1
+runon = 
 
 [database2]
 user = user2
 password = password2
 ignore_tables = cron_schedule, sequence_order_0, sequence_order_1, sequence_invoice_0, sequence_invoice_1, sequence_shipment_0, sequence_shipment_1, sequence_creditmemo_0, sequence_creditmemo_1, quote_id_mask, shipping_tablerate, gift_message, quote, quote_item, quote_item_option, quote_payment, quote_shipping_rate, checkout_agreement_store, checkout_agreement, quote_address, quote_address_item, sales_order, downloadable_link_purchased, downloadable_link_purchased_item, sales_order_payment, sales_order_address, sales_payment_transaction, vault_payment_token_order_payment_link, vault_payment_token, sales_order_status_history, sales_order_grid, sales_order_item, sales_order_tax_item, sales_order_tax, sales_invoice, sales_invoice_item, sales_invoice_comment, sales_invoice_grid, sales_shipment, sales_shipment_item, sales_shipment_track, sales_shipment_comment, sales_shipment_grid, sales_creditmemo, sales_creditmemo_comment, sales_creditmemo_grid, sales_creditmemo_item, sales_invoiced_aggregated, sales_invoiced_aggregated_order, sales_bestsellers_aggregated_monthly, sales_bestsellers_aggregated_yearly, sales_bestsellers_aggregated_daily, sales_shipping_aggregated, sales_shipping_aggregated_order, sales_order_aggregated_created, sales_order_aggregated_updated, sales_order_status_state, sales_order_status, sales_order_status_label, sales_sequence_meta, sales_sequence_profile, sales_refunded_agreggregated, sales_refunded_aggregated_order
 filter_output = 0
+runon = database1
 
 [database3]
 user = user3
 password = password3
 ignore_tables = 
 filter_output = 1
+runon = 
