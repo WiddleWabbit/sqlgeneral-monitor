@@ -12,6 +12,7 @@ from datetime import datetime
 
 # Import other script file
 import filter
+import conf
 
 # Begin Timing Script
 startTime = datetime.now()
@@ -35,7 +36,7 @@ usage = "usage: %prog [option] arg"
 
 # Define log option
 parser.add_option("-f", "--file", type="string", help="REQUIRED, Specify the sql log file to process via an absolute path.", dest="location")
-parser.add_option("-c", "--config", type="string", help="Specify a configuration profile file.", dest="config_file")
+parser.add_option("-c", "--config", type="string", help="Specify a configuration file by name, no path reference required.", dest="config_file")
 parser.add_option("-d", "--debug-line", type="int", help="Specify with a line number to print to screen all recorded information from that line including User, Query Type etc. Only accepts numbers.", dest="debug_line")
 
 options, args = parser.parse_args()
@@ -47,20 +48,6 @@ options, args = parser.parse_args()
 # Stop script if no option is passed for the file location
 if not options.location:
     parser.error("Log file not defined correctly (Use -f)")
-
-# If a profile is specified
-if options.config_file:
-
-    # If the file specified either does not exist or is not a file
-    if not os.path.exists(options.config_file) and os.path.isfile(options.config_file):
-        parser.error("Specified config file does not exist or is not a file")
-
-    else:
-        try:
-            config = ConfigParser.ConfigParser()
-            config.read(options.config_file)
-        except:
-            parser.error("Error Reading Config file")
 
 #               ################################
 #               ---   DEFINING ENUMERATORS   ---
@@ -187,9 +174,9 @@ def indexPlusOne(index_given):
 
     return index_given + 1
 
-#               ###############################
-#               ---   BEGIN MAIN FUNCTION   ---
-#               ###############################
+#               ########################################
+#               ---   BEGIN DEFINING MAIN FUNCTION   ---
+#               ########################################
 
 def main():
 
@@ -197,87 +184,7 @@ def main():
 #               ---   READ CONFIGURATION   ---
 #               ##############################
 
-    # FETCH Export Directory
-
-    # Try to fetch the export directory
-    try:
-        export_dir = config.get('SYSTEM', 'export')
-    except:
-        parser.error("Error fetching export directory")
-
-    # FETCH RECORDABLE QUERIES
-
-    # Define an array for the recordable sql queries, processed and unprocessed
-    record = []
-    recordable = []
-    count = 0
-
-    # Try to fetch the recordable sql queries from the config and input them into the array
-    try:
-        record = config.get('SYSTEM', 'record').split(',')
-        if len(record) == 0:
-            parser.error("Unable to read record from system")
-        elif record[0] == "":
-            parser.error("No SQL Queries specified for recording")
-        else:
-            # We strip them individually so that SQL commands with a space do not have them removed
-            for sqlcmd in record:
-                sqlcmd = sqlcmd.strip()
-                recordable.insert(count, sqlcmd)
-                count += 1
-    except:
-        parser.error("Unable to read record from system")
- 
-    # FETCH DATABASES AND DATABASE SPECIFIC CONFIGURATIONS
-
-    # Define a dictionary for the config of the databases 
-    configuration = {}
-
-    # Try to split the databases from the configuration into a list with whitespace removed
-    try:
-        databases = re.sub('[\s+]', '', config.get('SYSTEM', 'databases')).split(',')
-    except:
-        parser.error("Databases incorrectly specified in configuration")
-
-    # Using the split up list of databases as a basis for the number of entries in the list
-    # Begin moving the config to the configuration list
-    for db in databases:
-
-        # Try and get the user for the current entry and store them in a variable
-        try:
-            current_user = config.get(db, 'user')
-        except:
-            parser.error("Unable to find the user value in the configuration for %(dbs)s in the configuration file" % {'dbs' : db})
-
-        # Set the dictionary value for the current user as a list in configuration
-        configuration[current_user] = []
-        # Insert to that list at the database index the database name
-        configuration[current_user].insert(CONFIG.Database.value, db)
-       
-        # Try and separate out the tables to ignore for this user and then insert them into the configuration dictionary at the
-        # ignoretables index of the user element
-        try:
-            ignore_tables = re.sub('[\s+]', '', config.get(db, 'ignore_tables')).split(',')
-            configuration[current_user].insert(CONFIG.IgnoreTables.value, ignore_tables)
-        except:
-            print(configuration)
-            parser.error("Unable to read specified ignore_tables for %(dbs)s" %{'dbs' : db})
-
-        # Add backticks around any tables that need to be ignored
-        if configuration[current_user][CONFIG.IgnoreTables.value][0] != '':
-            for x in range(len(configuration[current_user][CONFIG.IgnoreTables.value])):
-                configuration[current_user][CONFIG.IgnoreTables.value][x] = '`' + configuration[current_user][CONFIG.IgnoreTables.value][x] + '`'
-
-        # Try to get the filter value from the user
-        try:
-            configuration[current_user].insert(CONFIG.Filter.value, config.get(db, 'filter_output'))
-        except:
-            configuration[current_user].insert(CONFIG.Filter.value, '0')
-
-    configuration["Unknown User"] = []
-    configuration["Unknown User"].insert(CONFIG.Database.value, "None")
-    configuration["Unknown User"].insert(CONFIG.IgnoreTables.value, "None")
-    configuration["Unknown User"].insert(CONFIG.Filter.value, "0")
+    configuration = conf.getConfig(options.config_file)
 
 #               ################################
 #               ---   SETUP OTHER VARIBLES   ---
@@ -300,13 +207,7 @@ def main():
     # If the file specified in the options is both a file and exists
     if os.path.exists(options.location) and os.path.isfile(options.location):
 
-#        # Only move the file and rename if we are going to actually go ahead with the clearing of the log file
-#        # However if we are only debugging (debug line is set) then do not rename or move the file
-#        # We set the file variable so we can reference the file later
-#        if not options.debug_line:
-#            os.rename(options.location, '/root/scripts/working/temp')
-#            file = '/root/scripts/working/temp'
-#        else:
+        # Set the location
         file = options.location
 
         # Write the information from the sql log to the array in a 2D format
@@ -402,13 +303,13 @@ def main():
 #               ###########################
 
         # Check to see if the export directory exists, if it does not create it
-        if not os.path.isdir(export_dir):
+        if not os.path.isdir(configuration["Global"][conf.GLOBAL.Export.value]):                                                                                               #export_dir):
             # If the path exists but its not a directory error as a bad folder has been given
             if os.path.exists:
                 parser.error("Config Export path is not an directory and exists")
             # Otherwise create the directory
             else:
-                os.makedirs(export_dir)
+                os.makedirs(configuration["Global"][conf.GLOBAL.Export.value])                                                                                                 #export_dir)
 
         # Create a dictionary to store the save file locations
         save_files = {}
@@ -416,7 +317,7 @@ def main():
         for user in configuration:
 
             # Create the save file location
-            save_files[user] = export_dir + configuration[user][CONFIG.Database.value]
+            save_files[user] = configuration["Global"][conf.GLOBAL.Export.value] + configuration[user][CONFIG.Database.value] #export_dir + configuration[user][CONFIG.Database.value]
 
         # For each line in the log
         for x in range(len(sqllog)):
@@ -437,20 +338,20 @@ def main():
                 if configuration[sqllog[x][COL.User.value]][CONFIG.IgnoreTables.value][0] == "":
 
                     # If there is a recordable command then set save to one otherwise 0
-                    if any(cmd in sqllog[x][COL.String.value] for cmd in recordable):
+                    if any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]):                        #recordable):
                         sqllog[x].insert(COL.Save.value, '1')
                     else:
                         sqllog[x].insert(COL.Save.value, '0')
 
                 # Otherwise if the line contains a sql command we have set it to record and not a table set to ignore from the configuration
-                elif any(cmd in sqllog[x][COL.String.value] for cmd in recordable): 
+                elif any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]):                          #recordable): 
 
                     split = re.findall(r'[^"\s]\S*|".+?"', sqllog[x][COL.String.value])
                     next_cmd = re.compile("^[A-Z]{2,9}")
                     not_null = re.compile("(?!NULL)")
 
                     # For each command we want to record
-                    for cmd in recordable:
+                    for cmd in configuration["Global"][conf.GLOBAL.Record.value]:                                                                  #recordable:
 
                         next_index = []
 
@@ -585,8 +486,9 @@ def main():
 
         # Check each users configuration and filter the output files if they are configured to do so
         for user in configuration:
-            if configuration[user][CONFIG.Filter.value] == "1":
-                filter.filter(save_files[user])
+            if user != "Global":
+                if configuration[user][CONFIG.Filter.value] == "1":
+                    filter.filter(save_files[user])
 
 #               #####################
 #               ---   DELETE FILE ---

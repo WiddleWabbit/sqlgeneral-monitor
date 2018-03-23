@@ -44,6 +44,11 @@ export = /root/exports/
 #       Example:
 #       user = exampleuser
 #
+# Each database section should also contain a password field to specify a password to associate with the user
+# 
+#       Example:
+#       password: examplepassword
+#
 # Each database has the option to filter its output file of empty start transactions and either rollbacks or commits
 # The value is just a boolean, 1 or 0
 #
@@ -65,15 +70,18 @@ export = /root/exports/
 
 [database1]
 user = user1
+password = password1
 ignore_tables = cron_schedule
 filter_output = 1
 
 [database2]
 user = user2
+password = password2
 ignore_tables = cron_schedule, sequence_order_0, sequence_order_1, sequence_invoice_0, sequence_invoice_1, sequence_shipment_0, sequence_shipment_1, sequence_creditmemo_0, sequence_creditmemo_1, quote_id_mask, shipping_tablerate, gift_message, quote, quote_item, quote_item_option, quote_payment, quote_shipping_rate, checkout_agreement_store, checkout_agreement, quote_address, quote_address_item, sales_order, downloadable_link_purchased, downloadable_link_purchased_item, sales_order_payment, sales_order_address, sales_payment_transaction, vault_payment_token_order_payment_link, vault_payment_token, sales_order_status_history, sales_order_grid, sales_order_item, sales_order_tax_item, sales_order_tax, sales_invoice, sales_invoice_item, sales_invoice_comment, sales_invoice_grid, sales_shipment, sales_shipment_item, sales_shipment_track, sales_shipment_comment, sales_shipment_grid, sales_creditmemo, sales_creditmemo_comment, sales_creditmemo_grid, sales_creditmemo_item, sales_invoiced_aggregated, sales_invoiced_aggregated_order, sales_bestsellers_aggregated_monthly, sales_bestsellers_aggregated_yearly, sales_bestsellers_aggregated_daily, sales_shipping_aggregated, sales_shipping_aggregated_order, sales_order_aggregated_created, sales_order_aggregated_updated, sales_order_status_state, sales_order_status, sales_order_status_label, sales_sequence_meta, sales_sequence_profile, sales_refunded_agreggregated, sales_refunded_aggregated_order
 filter_output = 0
 
 [database3]
 user = user3
+password = password3
 ignore_tables = 
 filter_output = 1
