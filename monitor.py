@@ -231,6 +231,9 @@ def main():
                     lineno += 1
                     counter += 1
 
+            # Print Number of Lines Processed
+            print('Read ' + str(counter) + 'Lines...')
+
             # Double check that if the debug line (minus one because we are going from line number to array number) is specified it is within the range of the file
             if args.debug_line and args.debug_line > counter:
                 parser.error("Debug Line is beyond the end of the file specified")
@@ -321,6 +324,9 @@ def main():
                 # Otherwise create the directory
                 else:
                     os.makedirs(configuration["Global"][conf.GLOBAL.Export.value])
+
+            # Count number of Lines that Need to be Saved
+            count = 0
 
             # For each line in the log
             for x in range(len(sqllog)):
@@ -464,7 +470,10 @@ def main():
 
                 # If the log has been set to save
                 if sqllog[x][COL.Save.value] == '1':
-                
+
+                    # Make a note of the how many lines were set to save
+                    count += 1
+
                     # Split the query and store only the valid sql query from this line
                     sqllog[x].insert(COL.Query.value, getQuery(sqllog[x][COL.String.value], "Query"))
 
@@ -482,6 +491,10 @@ def main():
                                 export.write(write)
                                 export.close()
 
+            # Print Number of Lines set to Save
+            print(str(count) + 'Lines set to Save...')
+            print('Saved Lines...')
+
 #               #####################
 #               ---  FILTER FILES ---
 #               #####################
@@ -498,6 +511,9 @@ def main():
 
             # Only delete the file if the debug_line option was not set
             if not args.debug_line:
+
+                # Deleting Original File
+                print('Deleting Original File...')
                 os.remove(file)
 
 #               ####################
@@ -590,7 +606,9 @@ def main():
 #               ---   SHOW RUNTIME ---
 #               ######################
 
+    print
     print("Total time of execution: " + str(datetime.now() - startTime))
+    print
 
 #               ########################
 #               ---   EXECUTE MAIN   ---

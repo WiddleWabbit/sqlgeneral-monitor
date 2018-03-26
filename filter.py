@@ -49,6 +49,7 @@ def filter(importfile):
     # Define counters
     lineno = 1
     counter = 0
+    lines_removed = 0
 
     if os.path.exists(importfile) and os.path.isfile(importfile):
 
@@ -72,12 +73,16 @@ def filter(importfile):
 
                         sqlcmds[indexMinusOne(counter)].insert(FILE.Save.value, '0')
                         sqlcmds[counter].insert(FILE.Save.value, '0')
+                        lines_removed += 1
 
                 lineno += 1
                 counter += 1
 
 #               ---   STORE INFORMATION ---
 
+        print
+        print('Found ' + str(lines_removed) 'Empty Transactions...')
+        print('Creating tmp file...')
 
         file_export = importfile
         file_tmp = str(importfile) + "_tmp"
@@ -86,6 +91,7 @@ def filter(importfile):
         os.rename(importfile, str(file_tmp))
 
         export = open(file_export, "a")
+        print('Removing Empty Transactions...')
 
         # Reiterate through the array to store information
         for x in range(len(sqlcmds)):
@@ -103,10 +109,13 @@ def filter(importfile):
 
         export.close()
 
+        print('Empty Transactions Removed Successfully...')
+
 #               ---   DELETE TEMP FILE ---
 
         os.remove(file_tmp)
-
+        
+        print('tmp File Removed...')
 
 #               ---   IF FILE DOES NOT EXIST   ---
 

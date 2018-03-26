@@ -51,7 +51,9 @@ def runSQL(user, configuration):
             count = 0
             tmp_file = configuration[user][conf.CONFIG.Export.value] + "_tmp"                   
 
-            # Open the file containing sql commands ##########################NEEDS TO BE ADDED TO CONFIGURATION
+            print('Connected to database ' + str(configuration[dbuser][conf.CONFIG.Database.value]))
+
+            # Open the file containing sql commands
             with open(configuration[user][conf.CONFIG.Export.value]) as file:
 
                 # Open our tmp file to store lines in case of an error
@@ -67,7 +69,7 @@ def runSQL(user, configuration):
                             count += 1
 
                         # Should an error occur we stop processing commands by setting err to 1 and write the line to our tmp file
-                        # To stop on a warning as well we should add ,MySQLdb.Warning inside brackets
+                        # To stop on a warning as well we should add ',MySQLdb.Warning' inside brackets
                         except (MySQLdb.Error) as error:
                             print(error)
                             tmp.write(line)
@@ -95,6 +97,7 @@ def runSQL(user, configuration):
                 os.rename(configuration[user][conf.CONFIG.Export.value], configuration[user][conf.CONFIG.Export.value] + "_backup")
                 os.rename(tmp_file, configuration[user][conf.CONFIG.Export.value])
 
+                print
                 print("Encountered Error...")
                 print("Ran " + str(count) + " Queries before Error")
                 print("Created backup of file executed")
@@ -106,6 +109,7 @@ def runSQL(user, configuration):
                 os.remove(configuration[user][conf.CONFIG.Export.value])
                 os.remove(tmp_file)
 
+                print
                 print("Ran " + str(count) + "Queries...")
                 print("Completed Successfully")
 

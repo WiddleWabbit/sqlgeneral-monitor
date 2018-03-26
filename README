@@ -2,33 +2,33 @@
                                        ---           README        ---
 
 
-This script is in development to try and setup a system allowing certain or all database changes to be recorded
-and later executed based on a configuration file.
+This script is in development to try and setup a system allowing certain or all database changes to be recorded and later executed based on a configuration file.
 
-The specific queries etc are able to be set per database with a global configuration for which queries should be
-recorded. 
-These recorded changes can then be run on another database allowing the developer/s to move updates or ecommerce
-orders easily and automatically from a development to a production website and vice verca.
+The specific queries etc are able to be set per database with a global configuration for which queries should be recorded. 
+These recorded changes can then be run on another database allowing the developer/s to move updates or ecommerce orders easily and automatically from a development to a production website and vice verca.
 
 
-        Current Build Designed for use on:
+Current Build Designed for use on:
 
-                        -   MySQL 5.6
-                        -   Python 2.6.6
+    -   MySQL 5.6
+    -   Python 2.6.6
 
-                 Requires:
+Requires:
 
-                        -   enum34 1.6.6 (backported)
-                        -   MySQLdb 1.2.5
+    -   enum34 1.6.6 (backported)
+    -   MySQLdb 1.2.5
 
 
                                         ---           TODO         ---
 
         -   Feature
-                -   Automatica flush of MySQL Log
+                -   Automatic flush of MySQL Log
                 -   Lock Functionality
                 -   Silent Running and Verbose
                 -   Per Database Ignore certain SQL Commands otherwise recorded (CREATE TEMPORARY TABLE etc)
+
+        -   monitor.py
+                -   Keep track of how many lines processed and add the functionality to filter as well.
 
         -   sqlrun.py
                 -   If there is a start transaction at the end of the command file with some
