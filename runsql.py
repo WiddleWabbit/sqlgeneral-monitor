@@ -110,6 +110,6 @@ def runSQL(user, configuration):
                 os.remove(tmp_file)
 
                 print
-                print("Ran " + str(count) + "Queries...")
+                print("Ran " + str(count) + " Queries...")
                 print("Completed Successfully")
 
