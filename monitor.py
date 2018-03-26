@@ -6,6 +6,7 @@ import re
 import sys
 import shlex
 import argparse
+import subprocess
 import ConfigParser
 from enum import Enum
 from enum import IntEnum
@@ -46,6 +47,7 @@ parser.add_argument("-c", "--config", help="Specify a configuration file by name
 parser.add_argument("-d", "--debug-line", help="Specify with a line number to print to screen all recorded information from that line including User, Query Type etc. Only accepts numbers.", dest="debug_line")
 parser.add_argument("--run", help="Run queries on any databases configured for them to be run.", action='store_true', dest="run")
 parser.add_argument("--run-only", help="Only run queries, do not process any log file", action='store_true', dest="run_only")
+parser.add_argument("--flush-log", help="If the file specified is the current general log file for MySQL then you can specify this option to backup the log, flush the logs and process the backup", action='store_true', dest="flush")
 
 args = parser.parse_args()
 
@@ -56,6 +58,45 @@ args = parser.parse_args()
 # Stop script if no option is passed for the file location
 if not args.run_only and not args.location:
     parser.error("Log file not defined correctly (Use -f)")
+
+#               ######################
+#               ---   FLUSH LOGS   ---
+#               ######################
+
+# Specify a command for moving and flushing the log file
+bashCMD = "mv -f " + str(args.location) + " " + str(args.location) + ".backup"
+bashCMD2 = "mysqladmin flush-logs"
+
+# Run the command
+if args.flush:
+
+    process = subprocess.Popen(bashCMD.split(), stdout=subprocess.PIPE)
+    out, err = process.communicate()
+
+    if err:
+        print(err)
+        parser.error("Error moving log")
+
+    else:
+        file = str(args.location) + ".backup"
+        print(out)
+        print("Logfile Moved, Attempting to Flush Logs...")
+
+    process = subprocess.Popen(bashCMD2.split(), stdout=subprocess.PIPE)
+    out, err = process.communicate()
+
+    if err:
+        print(err)
+        parser.error("Error flushing logs")
+
+    else:
+        file = str(args.location) + ".backup"
+        print(out)
+        print("Successfully Flushed Logs")
+
+else:
+
+    file = args.location
 
 #               ################################
 #               ---   DEFINING ENUMERATORS   ---
@@ -73,12 +114,6 @@ class COL(IntEnum):
     User = 5
     Save = 6
     Query = 7
-
-# Configuration Options
-#class CONFIG(IntEnum):
-#    Database = 0
-#    IgnoreTables = 1
-#    Filter = 2
 
 # Types of lines found in sql log
 # Used to represent values in COL.Type
@@ -212,14 +247,13 @@ def main():
 #               ---   BEGIN PROCESSING LOG   ---
 #               ################################
 
+    print
+
     # If the run only argument was not passed
     if not args.run_only:
 
         # If the file specified in the args is both a file and exists
-        if os.path.exists(args.location) and os.path.isfile(args.location):
-
-            # Set the location
-            file = args.location
+        if os.path.exists(file) and os.path.isfile(file):
 
             # Write the information from the sql log to the array in a 2D format
             with open(file) as sql_log:
@@ -232,7 +266,7 @@ def main():
                     counter += 1
 
             # Print Number of Lines Processed
-            print('Read ' + str(counter) + 'Lines...')
+            print('Read ' + str(counter) + ' Lines...')
 
             # Double check that if the debug line (minus one because we are going from line number to array number) is specified it is within the range of the file
             if args.debug_line and args.debug_line > counter:
@@ -492,7 +526,7 @@ def main():
                                 export.close()
 
             # Print Number of Lines set to Save
-            print(str(count) + 'Lines set to Save...')
+            print(str(count) + ' Lines set to Save...')
             print('Saved Lines...')
 
 #               #####################
@@ -509,12 +543,12 @@ def main():
 #               ---   DELETE FILE ---
 #               #####################
 
-            # Only delete the file if the debug_line option was not set
-            if not args.debug_line:
+#            # Only delete the file if the debug_line option was not set
+#            if not args.debug_line:
 
-                # Deleting Original File
-                print('Deleting Original File...')
-                os.remove(file)
+#                # Deleting Original File
+#                print('Deleting Original File...')
+#                os.remove(file)
 
 #               ####################
 #               ---   DEBUGGING  ---

@@ -27,9 +27,6 @@ Requires:
                 -   Silent Running and Verbose
                 -   Per Database Ignore certain SQL Commands otherwise recorded (CREATE TEMPORARY TABLE etc)
 
-        -   monitor.py
-                -   Keep track of how many lines processed and add the functionality to filter as well.
-
         -   sqlrun.py
                 -   If there is a start transaction at the end of the command file with some
                     commands. Do not process it or its commands as they may be rolled back.

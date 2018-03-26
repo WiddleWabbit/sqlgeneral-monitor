@@ -51,6 +51,9 @@ def filter(importfile):
     counter = 0
     lines_removed = 0
 
+    print
+    print('Checking ' + str(importfile))
+
     if os.path.exists(importfile) and os.path.isfile(importfile):
 
         # Write the information from the sql log to the array in a 2D format
@@ -80,44 +83,47 @@ def filter(importfile):
 
 #               ---   STORE INFORMATION ---
 
-        print
-        print('Found ' + str(lines_removed) 'Empty Transactions...')
-        print('Creating tmp file...')
+        print('Found ' + str(lines_removed) + ' Empty Transaction/s')
 
-        file_export = importfile
-        file_tmp = str(importfile) + "_tmp"
+        # Only Try to Remove Empty Transactions if There Were Some
+        if lines_removed != 0:
 
-        # Rename the file to a tmp
-        os.rename(importfile, str(file_tmp))
+            print('Creating Temporary file...')
 
-        export = open(file_export, "a")
-        print('Removing Empty Transactions...')
+            file_export = importfile
+            file_tmp = str(importfile) + "_tmp"
 
-        # Reiterate through the array to store information
-        for x in range(len(sqlcmds)):
+            # Rename the file to a tmp
+            os.rename(importfile, str(file_tmp))
 
-            # If the Save has not been set then set it
-            if len(sqlcmds[x]) != 4:
+            export = open(file_export, "a")
+            print('Removing Empty Transactions...')
 
-                sqlcmds[x].insert(FILE.Save.value, '1')
+            # Reiterate through the array to store information
+            for x in range(len(sqlcmds)):
 
-            # If the row is set to be saved
-            if sqlcmds[x][FILE.Save.value] == '1':            
+                # If the Save has not been set then set it
+                if len(sqlcmds[x]) != 4:
 
-                write = sqlcmds[x][FILE.Stripped.value] + "\n"
-                export.write(write)
+                    sqlcmds[x].insert(FILE.Save.value, '1')
 
-        export.close()
+                # If the row is set to be saved
+                if sqlcmds[x][FILE.Save.value] == '1':            
 
-        print('Empty Transactions Removed Successfully...')
+                    write = sqlcmds[x][FILE.Stripped.value] + "\n"
+                    export.write(write)
+
+            export.close()
+
+            print('Empty Transactions Removed Successfully')
 
 #               ---   DELETE TEMP FILE ---
 
-        os.remove(file_tmp)
+            os.remove(file_tmp)
         
-        print('tmp File Removed...')
+            print('Temporary File Removed')
 
 #               ---   IF FILE DOES NOT EXIST   ---
 
     else:
-        print("File does not exist or is a directory")
+        print("No Export File to Filter...")
