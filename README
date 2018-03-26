@@ -62,14 +62,14 @@ name: configuration
 
 Type: Dictionary of Lists
 Indexes: Enum Specified with CONFIG enum class
-  'DatabaseUser' : [CONFIG.Database, [CONFIG.IgnoreTables], CONFIG.Filter]
+  'DatabaseUser' : [CONFIG.Database, [CONFIG.IgnoreTables], CONFIG.Filter],[CONFIG.Pass],[CONFIG.Run]
 Formats:
-  [String][[String][List of Strings][Integer]]
+  [String][[String][List of Strings][Integer][String][List of Strings]]
 Example:
   [
-  'user1' : [database1, [list, of, tables, to, ignore], 1]
-  'user2' : [database2, [list, of, tables, to, ignore], 0]
-  'user3' : [database3, [list, of, tables, to, ignore], 0]
+  'user1' : [database1, [list, of, tables, to, ignore], 1, Password1, [databases, to, run, queries]]
+  'user2' : [database2, [list, of, tables, to, ignore], 0, Password2, [databases, to, run, queries]]
+  'user3' : [database3, [list, of, tables, to, ignore], 0, Password3, [databases, to, run, queries]]
   ]
 
 RECORDABLE QUERY LIST
