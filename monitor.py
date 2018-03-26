@@ -20,6 +20,7 @@ sys.dont_write_bytecode = True
 import filter
 import conf
 import runsql
+import lock
 
 # Begin Timing Script
 startTime = datetime.now()
@@ -33,6 +34,12 @@ startTime = datetime.now()
 #            - enum34 1.1.6
 #
 
+#               ######################
+#               ---   LOCK CHECK   ---
+#               ######################
+
+lock.checkLock()
+
 #               ############################
 #               ---   DEFINING OPTIONS   ---
 #               ############################
@@ -42,8 +49,8 @@ parser = argparse.ArgumentParser()
 usage = "usage: %prog [option] arg"
 
 # Define log option
-parser.add_argument("-f", "--file", help="REQUIRED, Specify the sql log file to process via an absolute path.", dest="location")
-parser.add_argument("-c", "--config", help="Specify a configuration file by name, no path reference required.", dest="config_file")
+parser.add_argument("-f", "--file", help="Specify the sql log file to process via an absolute path.", dest="location")
+parser.add_argument("-c", "--config", help="Specify a configuration file by name, no path reference required.", required=True, dest="config_file")
 parser.add_argument("-d", "--debug-line", help="Specify with a line number to print to screen all recorded information from that line including User, Query Type etc. Only accepts numbers.", dest="debug_line")
 parser.add_argument("--run", help="Run queries on any databases configured for them to be run.", action='store_true', dest="run")
 parser.add_argument("--run-only", help="Only run queries, do not process any log file", action='store_true', dest="run_only")
@@ -57,7 +64,8 @@ args = parser.parse_args()
 
 # Stop script if no option is passed for the file location
 if not args.run_only and not args.location:
-    parser.error("Log file not defined correctly (Use -f)")
+    print("Log file not defined correctly (Use -f)")
+    lock.exit()
 
 #               ######################
 #               ---   FLUSH LOGS   ---
@@ -75,7 +83,8 @@ if args.flush:
 
     if err:
         print(err)
-        parser.error("Error moving log")
+        print("Error moving log")
+        lock.exit()
 
     else:
         file = str(args.location) + ".backup"
@@ -87,7 +96,8 @@ if args.flush:
 
     if err:
         print(err)
-        parser.error("Error flushing logs")
+        print("Error flushing logs")
+        lock.exit()
 
     else:
         file = str(args.location) + ".backup"
@@ -172,7 +182,8 @@ def getType(string):
         return TYPE.Quit.value
 
     else:
-        parser.error("Unknown type for line")
+        print("Unknown type for line")
+        lock.exit()
 
 # Function to return the user from a connect statement in the sql log
 # Recieves the line as a string and the configuration as a dictionary
@@ -270,7 +281,8 @@ def main():
 
             # Double check that if the debug line (minus one because we are going from line number to array number) is specified it is within the range of the file
             if args.debug_line and args.debug_line > counter:
-                parser.error("Debug Line is beyond the end of the file specified")
+                print("Debug Line is beyond the end of the file specified")
+                lock.exit()
 
             zero_to_two = re.compile("^[0-2]{1}")
 
@@ -354,7 +366,8 @@ def main():
             if not os.path.isdir(configuration["Global"][conf.GLOBAL.Export.value]):
                 # If the path exists but its not a directory error as a bad folder has been given
                 if os.path.exists:
-                    parser.error("Config Export path is not an directory and exists")
+                    print("Config Export path is not an directory and exists")
+                    lock.exit()
                 # Otherwise create the directory
                 else:
                     os.makedirs(configuration["Global"][conf.GLOBAL.Export.value])
@@ -492,7 +505,8 @@ def main():
 
                         # We will only hit that if a query makes it all the way through without having any value set which should not be possible so error
                         elif len(sqllog[x]) < 7:
-                            parser.error("Didnt set save value")
+                            print("Didnt set save value")
+                            lock.exit()
 
                     # Otherwise if there is no recordable command in the line
                     else:
@@ -643,6 +657,7 @@ def main():
     print
     print("Total time of execution: " + str(datetime.now() - startTime))
     print
+    lock.exit()
 
 #               ########################
 #               ---   EXECUTE MAIN   ---

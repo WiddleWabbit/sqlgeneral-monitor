@@ -1,5 +1,6 @@
 # Ignore All Configs
 config/*
+lock
 
 # Dont Ignore Example Config
 !config/example

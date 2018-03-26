@@ -8,6 +8,8 @@ from enum import Enum
 from enum import IntEnum
 from optparse import OptionParser
 
+import lock
+
 #              ##############################
 #              ---   SCRIPT REQUIREMENTS  ---
 #              ##############################
@@ -34,7 +36,8 @@ parser = OptionParser()
 try:
     config_dir = os.path.dirname(os.path.realpath(__file__)) + "/config/"
 except:
-    parser.error("Error inializing conf module. Cannot find file path.")
+    print("Error inializing conf module. Cannot find file path.")
+    lock.exit()
 
 def getConfig(config_file):
 
@@ -45,14 +48,16 @@ def getConfig(config_file):
 
         # If the file specified either does not exist or is not a file
         if not os.path.exists(config_file) and os.path.isfile(config_file):
-            parser.error("Specified config file does not exist or is not a file")
+            print("Specified config file does not exist or is not a file")
+            lock.exit()
 
         else:
             try:
                 config = ConfigParser.ConfigParser()
                 config.read(config_file)
             except:
-                parser.error("Error Reading Config file")
+                print("Error Reading Config file")
+                lock.exit()
 
     # FETCH DATABASES AND DATABASE SPECIFIC CONFIGURATIONS
     # Define a dictionary for the config of the databases
@@ -64,7 +69,8 @@ def getConfig(config_file):
         configuration["Global"] = []
         configuration["Global"].insert(GLOBAL.Export.value, config.get('SYSTEM', 'export'))
     except:
-        parser.error("Error fetching export directory")
+        print("Error fetching export directory")
+        lock.exit()
 
     # FETCH RECORDABLE QUERIES
     # Define an array for the recordable sql queries, processed and unprocessed
@@ -76,9 +82,11 @@ def getConfig(config_file):
         configuration["Global"].append([])
         record = config.get('SYSTEM', 'record').split(',')
         if len(record) == 0:
-            parser.error("Unable to read record from system")
+            print("Unable to read record from system")
+            lock.exit()
         elif record[0] == "":
-            parser.error("No SQL Queries specified for recording")
+            print("No SQL Queries specified for recording")
+            lock.exit()
         else:
             # We strip them individually so that SQL commands with a space do not have them removed
             for sqlcmd in record:
@@ -86,13 +94,15 @@ def getConfig(config_file):
                 configuration["Global"][GLOBAL.Record.value].insert(count, sqlcmd)
                 count += 1
     except:
-        parser.error("Unable to read record from system")
+        print("Unable to read record from system")
+        lock.exit()
 
     # Try to split the databases from the configuration into a list with whitespace removed
     try:
         databases = re.sub('[\s+]', '', config.get('SYSTEM', 'databases')).split(',')
     except:
-        parser.error("Databases incorrectly specified in configuration")
+        print("Databases incorrectly specified in configuration")
+        lock.exit()
 
     # Using the split up list of databases as a basis for the number of entries in the list
     # Begin moving the config to the configuration list
@@ -102,7 +112,8 @@ def getConfig(config_file):
         try:
             current_user = config.get(db, 'user')
         except:
-            parser.error("Unable to find the user value in the configuration for %(dbs)s in the configuration file" % {'dbs' : db})
+            print("Unable to find the user value in the configuration for %(dbs)s in the configuration file" % {'dbs' : db})
+            lock.exit()
 
         # Set the dictionary value for the current user as a list in configuration
         configuration[current_user] = []
@@ -116,7 +127,8 @@ def getConfig(config_file):
             configuration[current_user].insert(CONFIG.IgnoreTables.value, ignore_tables)
         except:
             print(configuration)
-            parser.error("Unable to read specified ignore_tables for %(dbs)s" %{'dbs' : db})
+            print("Unable to read specified ignore_tables for %(dbs)s" %{'dbs' : db})
+            lock.exit()
 
         # Add backticks around any tables that need to be ignored
         if configuration[current_user][CONFIG.IgnoreTables.value][0] != '':
@@ -127,7 +139,8 @@ def getConfig(config_file):
         try:
             configuration[current_user].insert(CONFIG.Export.value, configuration["Global"][GLOBAL.Export.value] + db)
         except:
-            parser.error("Unable to set database export location")
+            print("Unable to set database export location")
+            lock.exit()
 
         # Try to get the filter value from the user
         try:
@@ -147,7 +160,8 @@ def getConfig(config_file):
             configuration[current_user].insert(CONFIG.Run.value, runon)
         except:
             print(runon)
-            parser.error("Unable to read specified runon configuration")
+            print("Unable to read specified runon configuration")
+            lock.exit()
 
     configuration["Unknown User"] = []
     configuration["Unknown User"].insert(CONFIG.Database.value, "None")

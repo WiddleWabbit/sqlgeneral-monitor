@@ -8,7 +8,7 @@ The specific queries etc are able to be set per database with a global configura
 These recorded changes can then be run on another database allowing the developer/s to move updates or ecommerce orders easily and automatically from a development to a production website and vice verca.
 
 
-Current Build Designed for use on:
+Developed for:
 
     -   MySQL 5.6
     -   Python 2.6.6
@@ -22,8 +22,6 @@ Requires:
                                         ---           TODO         ---
 
         -   Feature
-                -   Automatic flush of MySQL Log
-                -   Lock Functionality
                 -   Silent Running and Verbose
                 -   Per Database Ignore certain SQL Commands otherwise recorded (CREATE TEMPORARY TABLE etc)
 
@@ -37,7 +35,6 @@ Requires:
         -   Tidyup
                 -   index -> recorded_cmd
                 -   next_index -> next_cmd
-                -   Set full script timer
                 -   clean .value from end of enums
                 -   Add required permission values to readme
                 -   Update Lists in readme
