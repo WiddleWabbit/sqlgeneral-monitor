@@ -63,8 +63,6 @@ def runSQL(user, configuration):
             # Read the list backwards to see if the last entries are part of an unfinished transaction
             for index, cmd in reversed(list(enumerate(cmds))):
 
-                print(cmd.strip())
-
                 # If we find a commit or rollback first then there is no unfinished transaction that may be rolled back so just break
                 if cmd.strip() == 'COMMIT;' or cmd.strip() == 'ROLLBACK;':
                     break
