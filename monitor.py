@@ -294,7 +294,6 @@ def main():
             # Begin processing array information
             for x in range(len(sqllog)):
 
-############################################################################################## WHAT IF FIRST LINE IS CONTINUED
                 ### IF THIS IS ONE OF THE FIRST THREE LINES  ###
                 if x == 0 or x == 1 or x == 2:
                     # Do not process they are just text

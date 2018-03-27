@@ -1,6 +1,9 @@
 ####################################################################################################################
 #
-# The SYSTEM section is REQUIRED.
+# CURRENTLY ALL CONFIGURATION OPTIONS ARE REQUIRED TO EXIST
+# CERTAIN CONFIGURATION OPTIONS CAN BE LEFT BLANK HOWEVER
+# PLEASE SEE DESCRIPTION OF EACH CONFIGURATION OPTION
+#
 # System houses the configuration for databases and values for what queries to track
 #
 # The databases that are to be recorded is REQUIRED to be included in the configuration
@@ -59,15 +62,19 @@ export = /root/exports/
 #       password: examplepassword
 #
 # Each database has the option to filter its output file of empty start transactions and either rollbacks or commits
+# It is HIGHLY recommended that this be enabled to avoid excess processing for no reason
 # The value is just a boolean, 1 or 0
 #
 #       Example:
 #       filter_output = 1
 #
-# Each database has the option to have its recorded queries run (if the monitor script has the argument called)
+# Each database has the option to have its recorded queries run (if the monitor script has the --run or --run-only argument called)
 # The value should be a comma serarated list of databases to run the queries on
+# In order to not run any queries just leave the entry blank.
 # In order to run the queries the database to run the queries on must be specified as well and the user, password permissions
 # etc correct for that database
+# When the commands are attempted to be run they will NOT run any unfinished transaction on the end of the command list.
+# If a transaction does not have a closing commit or rollback, commands will stop running at it.
 #
 #       Example:
 #       runon = database2

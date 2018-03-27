@@ -1,11 +1,13 @@
 
                                        ---           README        ---
 
+This script is given a configuration and a sql general log file. The general log is then processed and certain sql commands issued (based on configuration) are written to an export file. Depending on configuration these commands can be automatically run on another database as well.
+It supports the automatic flush of a log file through it --flush-log option allowing you to move the log file, flush the mysql log through the mysqladmin flush-logs command and to then process the moved file. This prevents the log file becoming too large as the previously processed file is overridden each time this option is specified. This option also allows you to just aim the script with cron at the mysql general log and not worry about stopping or deleting it.
 
-This script is in development to try and setup a system allowing certain or all database changes to be recorded and later executed based on a configuration file.
+Use the --help option for for information on available options and how to use it.
 
-The specific queries etc are able to be set per database with a global configuration for which queries should be recorded. 
-These recorded changes can then be run on another database allowing the developer/s to move updates or ecommerce orders easily and automatically from a development to a production website and vice verca.
+The intention of the script is to allow certain database changes to be run on another database while other database changes are ignored, all on a per database standard. 
+For example an e-commerce website can automatically transfer orders etc to a development version of the site while new products, configuration changes etc can be automatically added to the production site.
 
 
 Developed for:
@@ -25,12 +27,11 @@ Requires:
                 -   Silent Running and Verbose
                 -   Per Database Ignore certain SQL Commands otherwise recorded (CREATE TEMPORARY TABLE etc)
 
-        -   sqlrun.py
-                -   If there is a start transaction at the end of the command file with some
-                    commands. Do not process it or its commands as they may be rolled back.
-
         -   conf.py
                 -   Create a splitConfig function to replace the multiple repeat code instances.
+
+        -   Other
+                -   Is it possible for a continued query to be passed as the first query in a document
 
         -   Tidyup
                 -   index -> recorded_cmd
