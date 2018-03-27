@@ -77,6 +77,10 @@ def runSQL(user, configuration):
             # Open our tmp file to store lines in case of an error
             tmp = open(tmp_file, 'w')
 
+            # Turn off general logging for this session so we don't end up with the queries appearing and being relogged
+            cursor.execute("set sql_log_off = 1;")
+            print('Disabled General Log for this Session')
+
             # Open our commands list and begin processing them
             for index, cmd in list(enumerate(cmds)):
 
