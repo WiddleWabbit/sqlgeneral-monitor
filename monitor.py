@@ -250,6 +250,9 @@ def main():
     # Define a dictionary to keep track of which query numbers belong to which users
     query_user = {}
 
+    # Define list of query numbers that are not to be saved at all
+    dont_save = []
+
     # Define counters
     lineno = 1
     counter = 0
@@ -353,6 +356,10 @@ def main():
                     except:
                         sqllog[x].insert(COL.User.value, "Unknown User")
 
+                if '789IGNORETHISSESSION987' in sqllog[x][COL.String.value]:
+                    dont_save.append(sqllog[x][COL.QueryNo.value])
+                    print("Ignoring Session " + sqllog[x][COL.QueryNo.value] + " Because it was Run By this Script")
+
                 ### STORE CONTINUED COMMANDS ON THE END OF THE PREVIOUS ###
                 if sqllog[x][COL.Type.value] == TYPE.Continued.value:
                     sqllog[sqllog[x][COL.StartIndex.value]][COL.String.value] = sqllog[sqllog[x][COL.StartIndex.value]][COL.String.value] + " " + sqllog[x][COL.String.value]
@@ -384,6 +391,12 @@ def main():
                 # No need to check users that were not set to record
                 if sqllog[x][COL.User.value] == "Unknown User":
                     continue
+
+                # We need to skip any query numbers that have been put in dont save because they were run by this script
+                for queryno in dont_save:
+                    if sqllog[x][COL.QueryNo.value] == queryno.strip():
+                        print("Skipping query")#########################################################################################################################DEBUGGING
+                        continue
 
                 ### DECIDE WHETHER TO SAVE OR NOT ###
                 # We only save queries
