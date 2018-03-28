@@ -417,6 +417,7 @@ def main():
                         split = re.findall(r'[^"\s]\S*|".+?"', sqllog[x][COL.String.value])
                         next_cmd = re.compile("^[A-Z]{2,9}")
                         not_null = re.compile("(?!NULL)")
+                        additional = re.compile("(?!(TEMPORARY)?(TABLE)?(IF)?(NOT)?(EXISTS)?(TABLE)?)")
 
                         # For each command we want to record
                         for cmd in configuration["Global"][conf.GLOBAL.Record.value]:
@@ -438,7 +439,7 @@ def main():
                             for z in range(len(split)):
 
                                 # Check to see if it is a command
-                                if next_cmd.match(split[z]) and not_null.match(split[z]):
+                                if next_cmd.match(split[z]) and not_null.match(split[z]) and additional.match(split[z]):
 
                                     # Ensure that the next command found cannot be a second part of the current command unless it is a FROM eg. DELETE FROM, INSERT INTO or START TRANSACTION
                                     if (split[z] == "FROM" and z > index) or (z > index and z != indexPlusOne(index)):
