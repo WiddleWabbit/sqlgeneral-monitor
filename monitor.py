@@ -181,6 +181,9 @@ def getType(string):
     elif string == "Quit":
         return TYPE.Quit.value
 
+    elif string == "Statistics":
+        return TYPE.Statistics.value
+
     else:
         print("Unknown type for line")
         lock.exit()
@@ -227,6 +230,14 @@ def indexMinusOne(index_given):
 def indexPlusOne(index_given):
 
     return index_given + 1
+
+# Function to see if a string is in the dont_save list
+# Recieves one string to check
+def doNotSave(string, dont_save):
+
+    for queryno in dont_save:
+        if string == queryno.strip():
+            return 1
 
 #               ########################################
 #               ---   BEGIN DEFINING MAIN FUNCTION   ---
@@ -282,8 +293,10 @@ def main():
             # Print Number of Lines Processed
             print('Read ' + str(counter) + ' Lines...')
 
-            # Double check that if the debug line (minus one because we are going from line number to array number) is specified it is within the range of the file
-            if args.debug_line and args.debug_line > counter:
+            # Double check that if the debug line is specified it is within the range of the file
+            if args.debug_line and int(args.debug_line) > int(sqllog[-1][COL.Line.value]):
+                print(args.debug_line)
+                print(sqllog[-1][COL.Line.value])
                 print("Debug Line is beyond the end of the file specified")
                 lock.exit()
 
@@ -292,6 +305,7 @@ def main():
             is_number = re.compile("^[0-9]+")
             is_time = re.compile("^[0-9]{1,2}:[0-9]{2}:[0-9]{2}")        
             is_type = re.compile("^Query|^Connect|^Quit")
+            statistics = re.compile("^Statistics")
 
             # Information from sql log now stored in array
             # Begin processing array information
@@ -328,6 +342,17 @@ def main():
                     # Insert the index of this query to the array
                     sqllog[x].insert(COL.StartIndex.value, x)
 
+                # Statistics Command
+                # Check to see if this is a statistics command if it is none of the above
+                elif is_number.match(split[0]) and statistics.match(split[1]):
+
+                    # Insert the type to the array
+                    sqllog[x].insert(COL.Type.value, getType(split[1]))
+                    # Insert the Query Number into the array
+                    sqllog[x].insert(COL.QueryNo.value, split[0])
+                    # Insert the index of this query to the array
+                    sqllog[x].insert(COL.StartIndex.value, x)
+
                 # Continued Query
                 # Otherwise this is an entry given that is in neither format and must be a continued query
                 else:
@@ -356,9 +381,10 @@ def main():
                     except:
                         sqllog[x].insert(COL.User.value, "Unknown User")
 
+                ### CHECK IF THIS COMMAND WAS MADE BY THE SCRIPT ###
                 if '789IGNORETHISSESSION987' in sqllog[x][COL.String.value]:
                     dont_save.append(sqllog[x][COL.QueryNo.value])
-                    print("Ignoring Session " + sqllog[x][COL.QueryNo.value] + " Because it was Run By this Script")
+                    print("Ignoring Session " + sqllog[x][COL.QueryNo.value] + ' (Recorded Previously)')
 
                 ### STORE CONTINUED COMMANDS ON THE END OF THE PREVIOUS ###
                 if sqllog[x][COL.Type.value] == TYPE.Continued.value:
@@ -380,6 +406,7 @@ def main():
 
             # Count number of Lines that Need to be Saved
             count = 0
+            skipped = 0
 
             # For each line in the log
             for x in range(len(sqllog)):
@@ -393,10 +420,9 @@ def main():
                     continue
 
                 # We need to skip any query numbers that have been put in dont save because they were run by this script
-                for queryno in dont_save:
-                    if sqllog[x][COL.QueryNo.value] == queryno.strip():
-                        print("Skipping query")#########################################################################################################################DEBUGGING
-                        continue
+                if doNotSave(sqllog[x][COL.QueryNo.value], dont_save):
+                    skipped += 1
+                    continue
 
                 ### DECIDE WHETHER TO SAVE OR NOT ###
                 # We only save queries
@@ -554,7 +580,8 @@ def main():
 
             # Print Number of Lines set to Save
             print(str(count) + ' Lines set to Save...')
-            print('Saved Lines...')
+            print('Skipped ' + str(skipped) + ' Lines...')
+            print('Saved Lines')
 
 #               #####################
 #               ---  FILTER FILES ---
@@ -585,7 +612,7 @@ def main():
             if args.debug_line is not None:
 
                 # Convert the number given to the array index of the line        
-                test_index = args.debug_line - 1
+                test_index = int(args.debug_line) - 1
 
                 # Set variables for each element of the line set to debug
                 test_line = sqllog[test_index][COL.Line]

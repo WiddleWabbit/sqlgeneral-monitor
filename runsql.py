@@ -79,7 +79,7 @@ def runSQL(user, configuration):
 
             # Make invalid query that monitor will look for and ignore
             try:
-                cursor.execute("789IGNORETHISSESSION987")
+                cursor.execute("SELECT * FROM 123456789IGNORETHISSESSION987654321")
             except:
                 print('Made Query to Ensure Not Rerecorded')
 

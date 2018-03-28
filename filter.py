@@ -84,6 +84,7 @@ def filter(importfile):
 #               ---   STORE INFORMATION ---
 
         print('Found ' + str(lines_removed) + ' Empty Transaction/s')
+        print('Removed ' + str(lines_removed * 2) + ' Lines')
 
         # Only Try to Remove Empty Transactions if There Were Some
         if lines_removed != 0:
