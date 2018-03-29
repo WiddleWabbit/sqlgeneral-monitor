@@ -134,6 +134,7 @@ class TYPE(IntEnum):
     Quit = 4
     Statistics = 5
     Continued = 6
+    InitDB = 7
 
 # The cPanel users associated with databases
 # Used to represent values in COL.User
@@ -183,6 +184,9 @@ def getType(string):
 
     elif string == "Statistics":
         return TYPE.Statistics.value
+
+    elif string == "InitDB":
+        return TYPE.InitDB.value
 
     else:
         print("Unknown type for line")
@@ -311,6 +315,8 @@ def main():
             is_time = re.compile("^[0-9]{1,2}:[0-9]{2}:[0-9]{2}")        
             is_type = re.compile("^Query|^Connect|^Quit")
             statistics = re.compile("^Statistics")
+            init = re.compile("^Init")
+            db = re.compile("DB")
 
             # Information from sql log now stored in array
             # Begin processing array information
@@ -349,12 +355,39 @@ def main():
 
                 # Statistics Command
                 # Check to see if this is a statistics command if it is none of the above
-                elif is_number.match(split[0]) and statistics.match(split[1]):
+                elif (is_number.match(split[0]) and statistics.match(split[1])) or (is_number.match(split[0]) and is_time.match(split[1]) and is_number.match(split[2]) and statistics.match(split[3])):
 
-                    # Insert the type to the array
-                    sqllog[x].insert(COL.Type.value, getType(split[1]))
-                    # Insert the Query Number into the array
-                    sqllog[x].insert(COL.QueryNo.value, split[0])
+                    if statistics.match(split[1]):
+                        # Insert the type to the array
+                        sqllog[x].insert(COL.Type.value, getType(split[1]))
+                        # Insert the Query Number into the array
+                        sqllog[x].insert(COL.QueryNo.value, split[0])
+
+                    else:
+                        # Insert the type to the array
+                        sqllog[x].insert(COL.Type.value, getType(split[3]))
+                        # Insert the Query Number into the array
+                        sqllog[x].insert(COL.QueryNo.value, split[2])
+
+                    # Insert the index of this query to the array
+                    sqllog[x].insert(COL.StartIndex.value, x)
+
+                # Init DB Command
+                # Check to see if this is a 'Init DB' command if it is none of the above
+                elif (is_number.match(split[0]) and init.match(split[1]) and db.match(split[2])) or (is_number.match(split[0]) and is_time.match(split[1]) and is_number.match(split[2]) and init.match(split[3]) and db.match(split[4])):
+
+                    if init.match(split[1]):
+                        # Insert the type to the array
+                        sqllog[x].insert(COL.Type.value, getType(split[1] + split[2]))
+                        # Insert the Query Number into the array
+                        sqllog[x].insert(COL.QueryNo.value, split[0])
+
+                    else:
+                        # Insert the type to the array
+                        sqllog[x].insert(COL.Type.value, getType(split[3]) + split[4])
+                        # Insert the Query Number into the array
+                        sqllog[x].insert(COL.QueryNo.value, split[2])
+
                     # Insert the index of this query to the array
                     sqllog[x].insert(COL.StartIndex.value, x)
 
