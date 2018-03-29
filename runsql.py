@@ -147,7 +147,6 @@ def runSQL(user, configuration):
                 os.remove(configuration[user][conf.CONFIG.Export.value])
                 os.remove(tmp_file)
 
-                print
                 print("Ran " + str(count) + " Queries...")
                 print("Completed Successfully")
 

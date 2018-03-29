@@ -384,14 +384,16 @@ def main():
                 elif (is_number.match(split[0]) and init.match(split[1]) and db.match(split[2])) or (is_number.match(split[0]) and is_time.match(split[1]) and is_number.match(split[2]) and init.match(split[3]) and db.match(split[4])):
 
                     if init.match(split[1]):
+                        type = split[1] + " " + split[2]
                         # Insert the type to the array
-                        sqllog[x].insert(COL.Type.value, getType(split[1] + " " + split[2]))
+                        sqllog[x].insert(COL.Type.value, getType(type))
                         # Insert the Query Number into the array
                         sqllog[x].insert(COL.QueryNo.value, split[0])
 
                     else:
+                        type = split[3] + " " + split[4]
                         # Insert the type to the array
-                        sqllog[x].insert(COL.Type.value, getType(split[3]) + " " + split[4])
+                        sqllog[x].insert(COL.Type.value, getType(type))
                         # Insert the Query Number into the array
                         sqllog[x].insert(COL.QueryNo.value, split[2])
 
@@ -403,14 +405,16 @@ def main():
                 elif (is_number.match(split[0]) and field.match(split[1]) and list.match(split[2])) or (is_number.match(split[0]) and is_time.match(split[1]) and is_number.match(split[2]) and field.match(split[3]) and list.match(split[4])):
 
                     if field.match(split[1]):
+                        type = split[1] + " " + split[2]
                         # Insert the type to the array
-                        sqllog[x].insert(COL.Type.value, getType(split[1] + " " + split[2]))
+                        sqllog[x].insert(COL.Type.value, getType(type))
                         # Insert the Query Number into the array
                         sqllog[x].insert(COL.QueryNo.value, split[0])
 
                     else:
+                        type = split[3] + " " + split[4]
                         # Insert the type to the array
-                        sqllog[x].insert(COL.Type.value, getType(split[3]) + " " + split[4])
+                        sqllog[x].insert(COL.Type.value, getType(type))
                         # Insert the Query Number into the array
                         sqllog[x].insert(COL.QueryNo.value, split[2])
 
@@ -657,17 +661,6 @@ def main():
                     if configuration[user][conf.CONFIG.Filter.value] == "1":
                         filter.filter(configuration[user][conf.CONFIG.Export.value])
 
-#               #####################
-#               ---   DELETE FILE ---
-#               #####################
-
-#            # Only delete the file if the debug_line option was not set
-#            if not args.debug_line:
-
-#                # Deleting Original File
-#                print('Deleting Original File...')
-#                os.remove(file)
-
 #               ####################
 #               ---   DEBUGGING  ---
 #               ####################
@@ -751,6 +744,7 @@ def main():
     if args.run or args.run_only:
 
         for user in configuration:
+            print
             runsql.runSQL(user, configuration)
 
 
