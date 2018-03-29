@@ -194,8 +194,13 @@ def getUser(ln, configuration):
 
     # For each entry we have listed in the configuration dictionary
     for db in configuration:
+
         # Check to see if the database name listed is in the connect line (Function only used in connects)
-        if configuration[db][conf.CONFIG.Database.value] in ln:
+        db_entry = str(db) + str('@') + "localhost"
+
+        line = ln.split()        
+        if db_entry in line:
+            
             # If it is return the dictionary value for this database
             return db
 
