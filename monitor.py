@@ -486,12 +486,12 @@ def main():
                         # For each command we want to record
                         for cmd in configuration["Global"][conf.GLOBAL.Record.value]:
 
-                            next_index = []
+                            next_sqlcommand = []
 
                             # IS THE COMMAND IN THE LINE
                             # Try to find it in the list of elements from the current line
                             try:
-                                index = split.index(cmd)
+                                recorded_cmd = split.index(cmd)
 
                             # If we cant find it then continue with the next command that is recordable
                             except:
@@ -506,21 +506,21 @@ def main():
                                 if next_cmd.match(split[z]) and not_null.match(split[z]) and additional.match(split[z]):
 
                                     # Ensure that the next command found cannot be a second part of the current command unless it is a FROM eg. DELETE FROM, INSERT INTO or START TRANSACTION
-                                    if (split[z] == "FROM" and z > index) or (z > index and z != indexPlusOne(index)):
+                                    if (split[z] == "FROM" and z > recorded_cmd) or (z > recorded_cmd and z != indexPlusOne(recorded_cmd)):
 
                                         # If it is a command then add its index to the list of command indexes following the recordable commands
-                                        next_index.append(z)
+                                        next_sqlcommand.append(z)
 
                             # NO STATEMENTS FOLLOWING
                             # If nothing is in the commands after recordable command
-                            if not next_index:
+                            if not next_sqlcommand:
 
-                                # Search everything after the cmd (index)
+                                # Search everything after the cmd (recorded_cmd)
                                 # For each table in the ignore tables for this queries user
                                 for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]:
 
                                     # For each index between this and the last one
-                                    for i in range(index, len(split)):
+                                    for i in range(recorded_cmd, len(split)):
 
                                         # If we find a table we need to ignore then set save to 0
                                         if ignore_table == split[i]:
@@ -533,18 +533,18 @@ def main():
 
                             # FROM STATEMENT FOLLOWING IT
                             # If the next index is a FROM
-                            elif split[next_index[0]] == "FROM":
+                            elif split[next_sqlcommand[0]] == "FROM":
 
                                 # If there is no commands following beyond FROM then set the search to check for tables to ignore until the end of the line
-                                if len(next_index) <= 1:
-                                    next_index.append(indexMinusOne(len(split)))
+                                if len(next_sqlcommand) <= 1:
+                                    next_sqlcommand.append(indexMinusOne(len(split)))
                                 
-                                # Search everything between FROM (next_index[0]) and the next command (next_index[1])
+                                # Search everything between FROM (next_sqlcommand[0]) and the next command (next_sqlcommand[1])
                                 # For each table in the ignore tables for this queries user
                                 for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]:
 
                                     # For each index between this and the next command
-                                    for i in range(next_index[0], next_index[1]):
+                                    for i in range(next_sqlcommand[0], next_sqlcommand[1]):
 
                                         # If we find a table we need to ignore then set save to 0
                                         if ignore_table == split[i]:
@@ -559,13 +559,13 @@ def main():
                             # If the next command is not a FROM
                             else:
 
-                                # Search everything between the cmd (index) and the next command (next_index[0])
+                                # Search everything between the cmd (recorded_cmd) and the next command (next_sqlcommand[0])
                                 # For each table in the ignore tables for this queries user
                             
                                 for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]:
 
                                     # For each index between this and the next command
-                                    for i in range(index, next_index[0]):
+                                    for i in range(recorded_cmd, next_sqlcommand[0]):
 
                                         # If we find a table we need to ignore then set save to 0
                                         if ignore_table == split[i]:
