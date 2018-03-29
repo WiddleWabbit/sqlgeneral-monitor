@@ -31,12 +31,9 @@ Requires:
                 -   Create a splitConfig function to replace the multiple repeat code instances.
 
         -   Other
-                -   Is it possible for a continued query to be passed as the first query in a document
+                -   Is it possible for a continued query to be passed as the first query in a document?
 
         -   Tidyup
-                -   index -> recorded_cmd
-                -   next_index -> next_cmd
-                -   clean .value from end of enums
                 -   Add required permission values to readme
                 -   Update Lists in readme
 
