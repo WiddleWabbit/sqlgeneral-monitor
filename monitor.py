@@ -135,6 +135,7 @@ class TYPE(IntEnum):
     Statistics = 5
     Continued = 6
     InitDB = 7
+    FieldList = 8
 
 # The cPanel users associated with databases
 # Used to represent values in COL.User
@@ -185,10 +186,14 @@ def getType(string):
     elif string == "Statistics":
         return TYPE.Statistics.value
 
-    elif string == "InitDB":
+    elif string == "Init DB":
         return TYPE.InitDB.value
 
+    elif string == "Field List":
+        return TYPE.FieldList.value
+
     else:
+        print(string)
         print("Unknown type for line")
         lock.exit()
 
@@ -316,7 +321,9 @@ def main():
             is_type = re.compile("^Query|^Connect|^Quit")
             statistics = re.compile("^Statistics")
             init = re.compile("^Init")
-            db = re.compile("DB")
+            db = re.compile("^DB")
+            field = re.compile("^Field")
+            list = re.compile("^List")
 
             # Information from sql log now stored in array
             # Begin processing array information
@@ -378,13 +385,32 @@ def main():
 
                     if init.match(split[1]):
                         # Insert the type to the array
-                        sqllog[x].insert(COL.Type.value, getType(split[1] + split[2]))
+                        sqllog[x].insert(COL.Type.value, getType(split[1] + " " + split[2]))
                         # Insert the Query Number into the array
                         sqllog[x].insert(COL.QueryNo.value, split[0])
 
                     else:
                         # Insert the type to the array
-                        sqllog[x].insert(COL.Type.value, getType(split[3]) + split[4])
+                        sqllog[x].insert(COL.Type.value, getType(split[3]) + " " + split[4])
+                        # Insert the Query Number into the array
+                        sqllog[x].insert(COL.QueryNo.value, split[2])
+
+                    # Insert the index of this query to the array
+                    sqllog[x].insert(COL.StartIndex.value, x)
+
+                # Field List Command
+                # Check to see if this is a 'Field List' command if it is none of the above
+                elif (is_number.match(split[0]) and field.match(split[1]) and list.match(split[2])) or (is_number.match(split[0]) and is_time.match(split[1]) and is_number.match(split[2]) and field.match(split[3]) and list.match(split[4])):
+
+                    if field.match(split[1]):
+                        # Insert the type to the array
+                        sqllog[x].insert(COL.Type.value, getType(split[1] + " " + split[2]))
+                        # Insert the Query Number into the array
+                        sqllog[x].insert(COL.QueryNo.value, split[0])
+
+                    else:
+                        # Insert the type to the array
+                        sqllog[x].insert(COL.Type.value, getType(split[3]) + " " + split[4])
                         # Insert the Query Number into the array
                         sqllog[x].insert(COL.QueryNo.value, split[2])
 
