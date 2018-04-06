@@ -53,12 +53,21 @@ def runSQL(user, configuration):
             stop_at = ''
             tmp_file = configuration[user][conf.CONFIG.Export.value] + "_tmp"                   
 
-            # Open the file
-            with open(configuration[user][conf.CONFIG.Export.value]) as file:
+            if os.path.isfile(configuration[user][conf.CONFIG.Export.value]):
 
-                # Store each line in the cmds array
-                for line in file:
-                    cmds.append(line)
+                # Open the file
+                with open(configuration[user][conf.CONFIG.Export.value]) as file:
+
+                    # Store each line in the cmds array
+                    for line in file:
+                        cmds.append(line)
+
+            else:
+
+                # Break out of function there are no sql modifications set
+                print("No Queries to Run")
+                print("Completed Successfully")
+                return                
 
             # Read the list backwards to see if the last entries are part of an unfinished transaction
             for index, cmd in reversed(list(enumerate(cmds))):
