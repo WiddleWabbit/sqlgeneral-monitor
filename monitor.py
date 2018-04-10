@@ -485,10 +485,12 @@ def main():
 
                 # No need to check users that were not set to record
                 if sqllog[x][COL.User.value] == "Unknown User":
+
                     continue
 
                 # We need to skip any query numbers that have been put in dont save because they were run by this script
                 if doNotSave(sqllog[x][COL.QueryNo.value], dont_save):
+
                     skipped += 1
                     continue
 
@@ -511,7 +513,8 @@ def main():
                         split = re.findall(r'[^"\s]\S*|".+?"', sqllog[x][COL.String.value])
                         next_cmd = re.compile("^[A-Z]{2,9}")
                         not_null = re.compile("(?!NULL)")
-                        additional = re.compile("(?!(TEMPORARY)?(TABLE)?(IF)?(NOT)?(EXISTS)?(TABLE)?)")
+#                        additional = re.compile("(?!(TEMPORARY)?(TABLE)?(IF)?(NOT)?(EXISTS)?)")
+                        additional = re.compile("TABLE|TEMPORARY|IF|NOT|EXISTS")
 
                         # For each command we want to record
                         for cmd in configuration["Global"][conf.GLOBAL.Record.value]:
@@ -533,7 +536,7 @@ def main():
                             for z in range(len(split)):
 
                                 # Check to see if it is a command
-                                if next_cmd.match(split[z]) and not_null.match(split[z]) and additional.match(split[z]):
+                                if next_cmd.match(split[z]) and not_null.match(split[z]) and not additional.match(split[z]):
 
                                     # Ensure that the next command found cannot be a second part of the current command unless it is a FROM eg. DELETE FROM, INSERT INTO or START TRANSACTION
                                     if (split[z] == "FROM" and z > recorded_cmd) or (z > recorded_cmd and z != indexPlusOne(recorded_cmd)):
@@ -551,7 +554,7 @@ def main():
 
                                     # For each index between this and the last one
                                     for i in range(recorded_cmd, len(split)):
-
+                                        
                                         # If we find a table we need to ignore then set save to 0
                                         if ignore_table == split[i]:
                                             sqllog[x].insert(COL.Save.value, '0')
@@ -594,13 +597,27 @@ def main():
                             
                                 for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]:
 
-                                    # For each index between this and the next command
-                                    for i in range(recorded_cmd, next_sqlcommand[0]):
+                                    # If this is an ALTER TABLE statement then dont look for the table with backticks
+                                    if split[recorded_cmd] == "ALTER" and split[indexPlusOne(recorded_cmd)] == "TABLE":
+                                         # For each index between this and the next command
+                                        for i in range(recorded_cmd, next_sqlcommand[0]):
 
-                                        # If we find a table we need to ignore then set save to 0
-                                        if ignore_table == split[i]:
-                                            sqllog[x].insert(COL.Save.value, '0')
-                                            break
+                                            # If we find a table we need to ignore then set save to 0
+                                            if ignore_table.translate(None, '`') == split[i]:
+                                                sqllog[x].insert(COL.Save.value, '0')
+                                                break
+
+                                    # Otherwise look for the tables normally
+                                    else:
+                                        # For each index between this and the next command
+                                        for i in range(recorded_cmd, next_sqlcommand[0]):
+
+                                            # If we find a table we need to ignore then set save to 0
+                                            if ignore_table == split[i]:
+                                                sqllog[x].insert(COL.Save.value, '0')
+                                                break
+
+
 
                                     # If we have already found a table that causes us to ignore this query then break from for
                                     if len(sqllog[x]) == 7 and sqllog[x][COL.Save.value] == '0':
