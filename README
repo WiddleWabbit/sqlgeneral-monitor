@@ -9,6 +9,7 @@ Use the --help option for for information on available options and how to use it
 The intention of the script is to allow certain database changes to be run on another database while other database changes are ignored, all on a per database standard. 
 For example an e-commerce website can automatically transfer orders etc to a development version of the site while new products, configuration changes etc can be automatically added to the production site.
 
+USE THE monitor.py FILE TO RUN THE SCRIPT
 
 Developed for:
 
@@ -29,9 +30,6 @@ Requires:
 
         -   conf.py
                 -   Create a splitConfig function to replace the multiple repeat code instances.
-
-        -   Other
-                -   Is it possible for a continued query to be passed as the first query in a document?
 
         -   Tidyup
                 -   Add required permission values to readme
