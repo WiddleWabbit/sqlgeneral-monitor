@@ -1,8 +1,8 @@
 
                                        ---           README        ---
 
-This script is given a configuration and a sql general log file. The general log is then processed and certain sql commands issued (based on configuration) are written to an export file. Depending on configuration these commands can be automatically run on another database as well.
-It supports the automatic flush of a log file through it --flush-log option allowing you to move the log file, flush the mysql log through the mysqladmin flush-logs command and to then process the moved file. This prevents the log file becoming too large as the previously processed file is overridden each time this option is specified. This option also allows you to just aim the script with cron at the mysql general log and not worry about stopping or deleting it.
+This script is given a configuration and a sql general log file. The general log is then processed and certain sql commands issued (based on configuration) are written to one or more export files. Depending on configuration these commands can be automatically run on another database as well.
+It supports the automatic flush of a log file through the --flush-log option allowing you to move the log file, flush the mysql log through the mysqladmin flush-logs command and to then process the moved file. This prevents the log file becoming too large as the previously processed file is overridden each time this option is specified. This option also allows you to just aim the script with cron at the mysql general log and not worry about stopping or deleting it.
 
 Use the --help option for for information on available options and how to use it.
 
