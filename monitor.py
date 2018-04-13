@@ -577,7 +577,7 @@ def main():
                                 for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]:
 
                                     # For each index between this and the next command
-                                    for i in range(next_sqlcommand[0], next_sqlcommand[1]):
+                                    for i in range(next_sqlcommand[0], (int(next_sqlcommand[1]) + 1)):
 
                                         # If we find a table we need to ignore then set save to 0
                                         if ignore_table == split[i]:
