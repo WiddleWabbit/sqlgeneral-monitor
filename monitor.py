@@ -510,11 +510,44 @@ def main():
                     # Otherwise if there are ignore tables set and the line contains a sql command we have set to record
                     elif any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]): 
 
+
+                # IF THE COMMAND IS AN ALTER TABLE
+
                         # Split the line up into individual sections by the spaces
                         split = re.findall(r'[^"\s]\S*|".+?"', sqllog[x][COL.String.value])
 
+                        if split[2] == "ALTER":
+
+                            if x == (int(args.debug_line) - 1):
+                                print("DEBUG LINE WAS AN ALTER")
+
+                            if x == (int(args.debug_line) - 1):
+                                print(split)
+
+                            # For each ignored table in the configuration
+# if not any(ignore_table in split for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]):
+                            for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]:
+                                
+
+                                # Remove any backticks in the command before checking if the ignored table is in the line
+                                ignore_table = ignore_table.replace('`', '')
+                                if x == (int(args.debug_line) - 1):
+                                    print(ignore_table)
+
+                                if ignore_table in split:
+
+                                    # If the ignored_table is in the line then set save to 0 and break from the for loop
+                                    sqllog[x].insert(COL.Save.value, '0')
+                                    break
+
+                            # If the sqllog does not contain a save value yet then set it as 1 because no ignore table was found
+                            if len(sqllog[x]) < 7:
+                                if x == (debug_line - 1):
+                                    print("LESS THAN 7")
+                                sqllog[x].insert(COL.Save.value, '1')
+
                         # For each section of the current command compare it agains the ignore_table value, if there are no matches then
-                        if not any(ignore_table in split for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]):
+                        elif not any(ignore_table in split for ignore_table in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value]):
                             # Set save to 1
                             sqllog[x].insert(COL.Save.value, '1')
 
@@ -522,6 +555,8 @@ def main():
                         else:
                             # Set save to 0
                             sqllog[x].insert(COL.Save.value, '0')
+
+
 
                     # Otherwise if there is no recordable command in the line and the ignore is not set to nothing
                     else:
