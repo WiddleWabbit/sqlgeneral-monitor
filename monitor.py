@@ -272,8 +272,22 @@ def main():
     # Define the main array containing information pertaining to the log
     sqllog = []
 
-    # Define a dictionary to keep track of which query numbers belong to which users
-    query_user = {}
+    # Try to read previous query users from the .users file
+    try:
+        with open(str(args.location) + str(".users")) as saved_query_users:
+            query_user = {}
+            old_query_user = {}
+
+            for line in saved_query_users:
+                line = line.split(':')
+                query_user[line[0]] = line[1].rstrip()
+                old_query_user[line[0]] = line[1].rstrip()
+
+    except:
+        # The attempt to read previous users failed
+        # Define a dictionary to keep track of which query numbers belong to which users
+        print("Failed to read previous query users")
+        query_user = {}
 
     # Define list of query numbers that are not to be saved at all
     dont_save = []
@@ -593,6 +607,25 @@ def main():
             print(str(count) + ' Lines set to Save...')
             print('Skipped ' + str(skipped) + ' Lines...')
             print('Saved Lines')
+
+#               #########################
+#               ---  SAVE DICTIONARY  ---
+#               #########################
+
+            # If this is not a debugging
+            if args.debug_line is None:
+
+                # Create a save file next to the input file
+                query_user_save = open(str(args.location) + str(".users"), "w")
+                
+                # For each query we have recorded save its user key combo in the file
+                for key,val in query_user.items():
+                    if key not in old_query_user:
+                        line = str(key) + str(":") + str(val) + str("\n")
+                        query_user_save.write(line)
+
+                # Close the file
+                query_user_save.close()
 
 #               #####################
 #               ---  FILTER FILES ---
