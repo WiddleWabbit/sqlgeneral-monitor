@@ -22,10 +22,11 @@ import lock
 class CONFIG(IntEnum):
     Database = 0
     IgnoreTables = 1
-    Export = 2
-    Filter = 3
-    Pass = 4
-    Run = 5
+    IgnoreText = 2
+    Export = 3
+    Filter = 4
+    Pass = 5
+    Run = 6
 
 class GLOBAL(IntEnum):
     Export = 0
@@ -128,6 +129,16 @@ def getConfig(config_file):
         except:
             print(configuration)
             print("Unable to read specified ignore_tables for %(dbs)s" %{'dbs' : db})
+            lock.exit()
+
+        # Try to separate out the text to ignore for this user and then insert them into the configuration dictionary at the 
+        # ignoretext index of the user element
+        try:
+            ignore_text = re.sub('[\s+]', '', config.get(db, 'ignore_text')).split(',')
+            configuration[current_user].insert(CONFIG.IgnoreText.value, ignore_text)
+        except:
+            print(configuration)
+            print("Unable to read specified ignore_text for %(dbs)s" %{'dbs' : db})
             lock.exit()
 
         # Add backticks around any tables that need to be ignored
