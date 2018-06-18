@@ -274,10 +274,9 @@ def main():
 
     # Try to read previous query users from the .users file
     try:
+        query_user = {}
+        old_query_user = {}
         with open(str(args.location) + str(".users")) as saved_query_users:
-            query_user = {}
-            old_query_user = {}
-
             for line in saved_query_users:
                 line = line.split(':')
                 query_user[line[0]] = line[1].rstrip()
@@ -287,6 +286,7 @@ def main():
         # The attempt to read previous users failed
         # Define a dictionary to keep track of which query numbers belong to which users
         print("Failed to read previous query users")
+        old_query_user = {}
         query_user = {}
 
     # Define list of query numbers that are not to be saved at all
@@ -338,6 +338,10 @@ def main():
             db = re.compile("^DB")
             field = re.compile("^Field")
             list = re.compile("^List")
+            comment_line = re.compile("^--")
+            comment_line2 = re.compile("/\*(?s).*\*/")
+            tmp_at_localhost = re.compile("^cpses_[a-z, 0-9]+@localhost")
+            is_refresh = re.compile("^Refresh")
 
             # Information from sql log now stored in array
             # Begin processing array information
@@ -345,11 +349,31 @@ def main():
 
                 ### IF THIS IS ONE OF THE FIRST THREE LINES  ###
                 if x == 0 or x == 1 or x == 2:
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("Unknown User")
                     # Do not process they are just text
                     continue
 
                 ### SPLIT THE LINE (MAINTAIN QUOTES) ###                
                 split = re.findall(r'[^"\s]\S*|".+?"', sqllog[x][COL.String.value])
+
+                ### CHECK TO MAKE SURE THIS LINE CONTAINS SOMETHING
+                if len(split) == 0:
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("Unknown User")
+                    continue
+
+                ### CHECK IF THIS IS A COMMENT LINE
+                if comment_line.match(split[0]) or comment_line2.match(sqllog[x][COL.String.value]):
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("Unknown User")
+                    continue
 
                 ### GET THE TYPE AND QUERY NO ###
                 # Time Included Format
@@ -435,20 +459,61 @@ def main():
                     # Insert the index of this query to the array
                     sqllog[x].insert(COL.StartIndex.value, x)
 
+                # Refresh Command
+                # Check to see if this is a Refresh command if it is none of the above
+                elif (is_number.match(split[0]) and field.match(split[1]) and is_refresh.match(split[1])) or (is_number.match(split[0]) and is_time.match(split[1]) and is_number.match(split[2]) and field.match(split[3]) and is_refresh.match(split[3])):
+                    
+                    # Refresh commands are never recorded so just skip line
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("-")
+                    sqllog[x].append("Unknown User")
+                    continue
+
                 # Continued Query
                 # Otherwise this is an entry given that is in neither format and must be a continued query
                 else:
 
-                    # Insert the type to the array
-                    sqllog[x].insert(COL.Type.value, TYPE.Continued.value)
-                    # Insert the Query Number into the array
-                    sqllog[x].insert(COL.QueryNo.value, sqllog[indexMinusOne(x)][COL.QueryNo.value])
-                    # Insert the index of the beginning of this query to the array
-                    sqllog[x].insert(COL.StartIndex.value, sqllog[indexMinusOne(x)][COL.StartIndex.value])
+                    # If the previous line is not blank then set it as a continued query type line
+                    try:
+                        if (sqllog[indexMinusOne(x)][COL.Type.value] == TYPE.Query.value) or (sqllog[indexMinusOne(x)][COL.Type.value] == TYPE.Continued.value):
+                            sqllog[x].insert(COL.Type.value, TYPE.Continued.value)
+                        else:
+                            sqllog[x].append("-")
+                    # If the previous line is blank then append a - to the query type as this is an unprocessed query
+                    except:
+                        sqllog[x].append("-")
+
+                    try:
+                        # Insert the Query Number into the array
+                        sqllog[x].insert(COL.QueryNo.value, sqllog[indexMinusOne(x)][COL.QueryNo.value])
+                        # Insert the index of the beginning of this query to the array
+                        sqllog[x].insert(COL.StartIndex.value, sqllog[indexMinusOne(x)][COL.StartIndex.value])
+                    except:
+                        # On a failure there is a problem with the previous line, normally happens when it is blank should this happen then it is not a continued query
+                        # Skip the query
+                        sqllog[x].append("-")
+                        sqllog[x].append("-")
+                        sqllog[x].append("Unknown User")
+                        continue
+                        
 
                 ### STORE USER ON CONNECTS ###
                 # If it is a connect statment
                 if sqllog[x][COL.Type.value] == TYPE.Connect.value:
+
+                    try:
+                        # If this is for a temporary user
+                        if (tmp_at_localhost.match(split[2])) or (tmp_at_localhost.match(split[4])):
+
+                            sqllog[x].insert(COL.User.value, "Unknown User")
+                            # Add the query number to the queries to not save
+                            dont_save.append(sqllog[x][COL.Query.value])
+                            # And skip this line
+                            continue
+
+                    except:
+                        pass
 
                     # Find and insert the query's associated user (IntEnum value) into the main sqllog array using the getUser function
                     sqllog[x].insert(COL.User.value, getUser(sqllog[x][COL.String], configuration))
@@ -511,7 +576,7 @@ def main():
                 ### DECIDE WHETHER TO SAVE OR NOT ###
                 # We only save queries
                 if sqllog[x][COL.Type.value] == TYPE.Query.value:
-#################################################################################################################################################################################################################
+
                     if not any (text in sqllog[x][COL.String.value] for text in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreText.value]):
 
                         # Check the ignore tables if nothing is set then we dont check it
