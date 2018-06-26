@@ -577,20 +577,20 @@ def main():
                 # We only save queries
                 if sqllog[x][COL.Type.value] == TYPE.Query.value:
 
+                    # Check the ignore tables if nothing is set then we dont check it
+                    if configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value][0] == "":
+
+                        # If there is a recordable command then set save to one otherwise 0
+                        if any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]):
+
+                            sqllog[x].insert(COL.Save.value, '1')
+                        else:
+                            sqllog[x].insert(COL.Save.value, '0')
+
                     if not any (text in sqllog[x][COL.String.value] for text in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreText.value]):
 
-                        # Check the ignore tables if nothing is set then we dont check it
-                        if configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value][0] == "":
-    
-                            # If there is a recordable command then set save to one otherwise 0
-                            if any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]):
-
-                                sqllog[x].insert(COL.Save.value, '1')
-                            else:
-                                sqllog[x].insert(COL.Save.value, '0')
-
                         # Otherwise if there are ignore tables set and the line contains a sql command we have set to record
-                        elif any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]): 
+                        if any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]): 
 
                         # IF THE COMMAND IS AN ALTER TABLE
 
