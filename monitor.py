@@ -558,12 +558,18 @@ def main():
             # For each line in the log
             for x in range(len(sqllog)):
 
+                if int(args.debug_line) == int(x - 1):
+                    print("Entered Testing")
+
                 # If x is equal to zero, one or two then skip the iteration as we dont process the first three lines
                 if x == 0 or x == 1 or x == 2:
                     continue
 
                 # No need to check users that were not set to record
                 if sqllog[x][COL.User.value] == "Unknown User":
+
+                    if int(args.debug_line) == int(x - 1):
+                        print("Debug Line is Unknown User")
 
                     continue
 
@@ -577,17 +583,33 @@ def main():
                 # We only save queries
                 if sqllog[x][COL.Type.value] == TYPE.Query.value:
 
+                    if int(args.debug_line) == int(x - 1):
+                        print("Debug line is a Query")
+
                     # Check the ignore tables if nothing is set then we dont check it
                     if configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreTables.value][0] == "":
+
+                        if int(args.debug_line) == int(x - 1):
+                            print("No Ignore Tables for Debug Line")
 
                         # If there is a recordable command then set save to one otherwise 0
                         if any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]):
 
+                            if int(args.debug_line) == int(x - 1):
+                                print("Recordable Command Found Setting Save to 1")
+
                             sqllog[x].insert(COL.Save.value, '1')
                         else:
+
+                            if int(args.debug_line) == int(x - 1):
+                                print("No Recordable Command Found Setting Save to 0")
+
                             sqllog[x].insert(COL.Save.value, '0')
 
-                    if not any (text in sqllog[x][COL.String.value] for text in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreText.value]):
+                    elif not any (text in sqllog[x][COL.String.value] for text in configuration[sqllog[x][COL.User.value]][conf.CONFIG.IgnoreText.value]):
+
+                        if int(args.debug_line) == int(x - 1):
+                            print("There are ignore values and none have been found in the debug line")
 
                         # Otherwise if there are ignore tables set and the line contains a sql command we have set to record
                         if any(cmd in sqllog[x][COL.String.value] for cmd in configuration["Global"][conf.GLOBAL.Record.value]): 
